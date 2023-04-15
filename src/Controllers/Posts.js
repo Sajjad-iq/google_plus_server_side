@@ -226,3 +226,23 @@ exports.DeletePostHandler = async (req, res) => {
 
 
 
+exports.DeleteCommentsHandler = async (req, res) => {
+
+    try {
+        if (req.body.Comment.CommentOwnerId == req.body.UserId) {
+            await PostSchema.findByIdAndUpdate(req.body.PostId, {
+                $pull: { Comments: req.body.Comment },
+                $set: { CommentsCounter: req.body.CommentsCounter }
+            })
+            res.status(200).json("done")
+        } else {
+            res.status(404).json("you can't delete this comment")
+        }
+
+    } catch (e) {
+        console.log(e)
+        return res.status(500).json("server error")
+    }
+}
+
+

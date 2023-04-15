@@ -10,5 +10,6 @@ router.put("/AddLike", PostsController.AddLikeHandler)
 router.put("/AddComment", PostsController.AddCommentHandler)
 router.post("/Post", PostsController.FetchSpecificPostHandler)
 router.post("/Delete", PostsController.DeletePostHandler)
+router.post("/DeleteComments", PostsController.DeleteCommentsHandler)
 
 module.exports = router  
