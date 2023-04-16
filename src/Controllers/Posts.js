@@ -246,3 +246,24 @@ exports.DeleteCommentsHandler = async (req, res) => {
 }
 
 
+exports.EditCommentHandler = async (req, res) => {
+
+
+    try {
+        await PostSchema.updateOne({ "Comments._id": req.body.comment._id }, {
+            $set: {
+                "Comments.$[el].CommentBody": req.body.commentBody
+            }
+        },
+            { arrayFilters: [{ "el._id": req.body.comment._id }] }
+
+        );
+
+        res.status(200).json("done")
+
+    } catch (e) {
+        console.log(e)
+        return res.status(500).json("server error")
+    }
+}
+

@@ -4,6 +4,7 @@ const PostsController = require("../Controllers/Posts")
 
 router.post("/", PostsController.AddPostHandler)
 router.post("/Edit", PostsController.EditPostHandler)
+router.post("/EditComment", PostsController.EditCommentHandler)
 router.post("/Get", PostsController.FetchPostsHandler)
 router.post("/GetComments", PostsController.FetchCommentsHandler)
 router.put("/AddLike", PostsController.AddLikeHandler)
