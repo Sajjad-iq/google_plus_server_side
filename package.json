@@ -5,7 +5,7 @@
   "main": "src/index.js",
   "scripts": {
     "dev": "nodemon --exec babel-node src/index.js",
-    "build": "babel src -d dist",
+    "build": "babel src -d dist npm install -g babel-cli",
     "start": "node src/index.js",
     "both-dev": "concurrently \"npm run dev\" \"npm --prefix ../client/ run dev\""
   },
