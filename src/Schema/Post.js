@@ -25,7 +25,10 @@ const Comments = new mongoose.Schema({
         default: [],
         type: Array
     },
-    CommentsRePlays: CommentRePlay
+    CommentsRePlayTo: {
+        default: "",
+        type: String
+    }
 },
     { timestamps: true }
 

@@ -168,12 +168,28 @@ exports.AddCommentHandler = async (req, res) => {
             $set: { CommentsCounter: req.body.CommentsCounter }
         }).lean()
 
-        if (targetPost.PostOwnerId !== req.body.CommentOwnerId) {
+        if (targetPost.PostOwnerId !== req.body.CommentOwnerId && req.body.CommentsRePlayTo === "") {
             await AccountSchema.findByIdAndUpdate(req.body.PostOwnerId, {
                 $addToSet: {
                     Notifications: req.body.NotificationsObj
                 },
-            })
+            }).lean()
+            res.status(200).json(targetPost.Comments.length)
+
+        } else if (req.body.CommentsRePlayTo !== "") {
+
+            const NotificationsObj = req.body.NotificationsObj
+            await AccountSchema.findByIdAndUpdate(req.body.CommentsRePlayToId, {
+                $addToSet: {
+                    Notifications: {
+                        NotificationName: NotificationsObj.NotificationName,
+                        NotificationBody: `${NotificationsObj.NotificationName} Add Replay To your Comment "${req.body.CommentBody}"`,
+                        NotificationFromId: NotificationsObj.NotificationFromId,
+                        NotificationFrom: "posts",
+                        NotificationOwnerImage: NotificationsObj.NotificationOwnerImage
+                    }
+                },
+            }).lean()
 
             res.status(200).json(targetPost.Comments.length)
         } else {
