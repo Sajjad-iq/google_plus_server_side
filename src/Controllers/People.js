@@ -41,21 +41,40 @@ exports.AddFollowersHandler = async (req, res) => {
 
     try {
         if (req.body.operation === "remove") {
-            await Account.findByIdAndUpdate(req.body.FindUserId, {
+            const User = await Account.findByIdAndUpdate(req.body.FindUserId, {
                 $pull: { Followers: req.body.OwnerId }
+            })
+            await Account.findByIdAndUpdate(req.body.OwnerId, {
+                $pull: {
+                    Following: {
+                        FollowingName: `${User.UserName} ${User.FamilyName}`,
+                        FollowingId: req.body.FindUserId,
+                        FollowingImage: User.ProfilePicture
+                    }
+                }
             })
             res.status(200).json(-1)
         } else {
 
-            await Account.findByIdAndUpdate(req.body.FindUserId, {
+            const User = await Account.findByIdAndUpdate(req.body.FindUserId, {
                 $addToSet: {
                     Followers: req.body.OwnerId,
                     Notifications: req.body.NotificationsObj
                 }
             })
+            await Account.findByIdAndUpdate(req.body.OwnerId, {
+                $addToSet: {
+                    Following: {
+                        FollowingName: `${User.UserName} ${User.FamilyName}`,
+                        FollowingId: req.body.FindUserId,
+                        FollowingImage: User.ProfilePicture
+                    }
+                }
+            })
             res.status(200).json(1)
         }
     } catch (e) {
+        console.log(e)
         return res.status(500).json("server error")
     }
 };

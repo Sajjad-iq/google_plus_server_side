@@ -1,5 +1,24 @@
 const mongoose = require("mongoose");
 
+const FollowingSchema = new mongoose.Schema({
+
+    FollowingName: {
+        type: String,
+        default: ""
+    },
+    FollowingId: {
+        type: String,
+        default: ""
+    },
+    FollowingImage: {
+        default: "",
+        type: String
+    },
+},
+    { timestamps: true }
+
+)
+
 const NotificationsSchema = new mongoose.Schema({
 
     NotificationName: {
@@ -61,6 +80,10 @@ const AccountSchema = new mongoose.Schema({
     },
     Followers: {
         type: Array,
+        default: []
+    },
+    Following: {
+        type: [FollowingSchema],
         default: []
     },
     IsAdmin: {
