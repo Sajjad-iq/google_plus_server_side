@@ -1,20 +1,22 @@
 const AccountSchema = require('../Schema/Account')
+const mongoose = require("mongoose")
 
 exports.FetchNotifications = async (req, res) => {
-    const newArr = []
     try {
-        const UserNotifications = await AccountSchema.findById(req.params.id).select(
-            ["Notifications"]
-        ).lean()
+        const UserNotifications = await AccountSchema.aggregate([
+            { $match: { _id: mongoose.Types.ObjectId(req.params.id) } },
+            { $unwind: "$Notifications" },
+            { $sort: { "Notifications.updatedAt": -1 } },
+            { $limit: 15 },
+            { $group: { _id: "$_id", Notifications: { $push: "$Notifications" } } }
+        ]);
 
-        let NotificationsArr = UserNotifications.Notifications
-        for (let i = NotificationsArr.length - 1; i > NotificationsArr.length - 14; i--) {
-            if (NotificationsArr[i]) newArr.push(NotificationsArr[i])
-        }
-
-        res.status(200).json(newArr)
+        if (UserNotifications.length >= 1) res.status(200).json(UserNotifications[0].Notifications)
+        else res.status(200).json([])
     } catch (e) {
+        console.log(e)
         return res.status(500).json("server error")
     }
 }
+
 

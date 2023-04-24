@@ -1,3 +1,4 @@
+const { string } = require("joi");
 const mongoose = require("mongoose");
 
 const FollowingSchema = new mongoose.Schema({
@@ -33,13 +34,21 @@ const NotificationsSchema = new mongoose.Schema({
         type: String,
         default: ""
     },
+    NotificationOration: {
+        type: String,
+        default: ""
+    },
     NotificationFrom: {
         type: String,
         default: ""
     },
     NotificationOwnerImage: {
-        default: "",
-        type: String
+        default: [],
+        type: Array
+    },
+    NotificationUsersIds: {
+        default: [],
+        type: Array
     },
 },
     { timestamps: true }

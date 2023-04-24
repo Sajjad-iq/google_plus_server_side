@@ -1,5 +1,5 @@
-const PostSchema = require('../Schema/Post')
-const AccountSchema = require('../Schema/Account')
+const PostSchema = require('../../Schema/Post')
+const AccountSchema = require('../../Schema/Account')
 
 async function AddPost(body) {
     const Post = new PostSchema({
@@ -109,98 +109,6 @@ exports.FetchCommentsHandler = async (req, res) => {
 
 
 
-
-
-
-
-
-
-exports.AddLikeHandler = async (req, res) => {
-
-    try {
-        const targetPost = await PostSchema.findByIdAndUpdate(req.body.PostId,
-
-            req.body.Operation === "delete" ?
-                { $pull: { Likes: req.body.UserId } }
-                :
-                { $addToSet: { Likes: req.body.UserId } }
-
-        ).select(
-            ["_id", "PostBody", "PostOwnerName", "PostOwnerImage", "PostOwnerId", "PostImage", "Link", "CommentsCounter", "createdAt", "Likes"]
-        ).lean(true)
-
-
-        if (req.body.Operation === "delete") {
-            const index = targetPost.Likes.indexOf(req.body.UserId);
-            targetPost.Likes.splice(index, 1);
-
-            res.status(200).json(targetPost)
-        }
-
-        else {
-            targetPost.Likes.push(req.body.UserId)
-            if (req.body.UserId !== req.body.PostOwnerId) {
-                AccountSchema.findByIdAndUpdate(req.body.PostOwnerId, {
-                    $addToSet: {
-                        Notifications: req.body.NotificationsObj
-                    }
-                })
-                res.status(200).json(targetPost)
-            } else {
-                res.status(200).json(targetPost)
-            }
-
-        }
-
-
-    } catch (e) {
-        console.log(e)
-        return res.status(500).json("server error")
-    }
-}
-
-
-exports.AddCommentHandler = async (req, res) => {
-
-    try {
-        const targetPost = await PostSchema.findByIdAndUpdate(req.body.PostId, {
-            $push: { Comments: req.body },
-            $set: { CommentsCounter: req.body.CommentsCounter }
-        }).lean()
-
-        if (targetPost.PostOwnerId !== req.body.CommentOwnerId && req.body.CommentsRePlayTo === "") {
-            await AccountSchema.findByIdAndUpdate(req.body.PostOwnerId, {
-                $addToSet: {
-                    Notifications: req.body.NotificationsObj
-                },
-            }).lean()
-            res.status(200).json(targetPost.Comments.length)
-
-        } else if (req.body.CommentsRePlayTo !== "") {
-
-            const NotificationsObj = req.body.NotificationsObj
-            await AccountSchema.findByIdAndUpdate(req.body.CommentsRePlayToId, {
-                $addToSet: {
-                    Notifications: {
-                        NotificationName: NotificationsObj.NotificationName,
-                        NotificationBody: `${NotificationsObj.NotificationName} Add Replay To your Comment "${req.body.CommentBody}"`,
-                        NotificationFromId: NotificationsObj.NotificationFromId,
-                        NotificationFrom: "posts",
-                        NotificationOwnerImage: NotificationsObj.NotificationOwnerImage
-                    }
-                },
-            }).lean()
-
-            res.status(200).json(targetPost.Comments.length)
-        } else {
-            res.status(200).json(targetPost.Comments.length)
-        }
-
-    } catch (e) {
-        console.log(e)
-        return res.status(500).json("server error")
-    }
-}
 
 
 
