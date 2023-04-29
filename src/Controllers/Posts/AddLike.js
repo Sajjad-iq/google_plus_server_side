@@ -53,7 +53,7 @@ exports.AddLikeHandler = async (req, res) => {
                             NotificationUsersIds: body.UserId
                         }
                     }
-                })
+                }).select(["UserName", "FamilyName", "Email", "Password", "ProfilePicture", "CoverPicture", "Description", "Followers", "Following", " IsAdmin"]).lean()
 
             }
 

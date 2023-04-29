@@ -3,7 +3,7 @@ const Account = require('../Schema/Account')
 exports.SignInHandler = async (req, res) => {
 
     try {
-        const user = await Account.findOne({ Email: req.body.Email });
+        const user = await Account.findOne({ Email: req.body.Email }).select(["id", "UserName", "FamilyName", "Email", "Password", "ProfilePicture", "CoverPicture", "Description", "Followers", "Following", " IsAdmin"]).lean();
 
         if (user) {
             if (user.Password == req.body.Password) {
@@ -20,19 +20,3 @@ exports.SignInHandler = async (req, res) => {
     }
 };
 
-
-exports.SignInReFreshHandler = async (req, res) => {
-
-    try {
-        const user = await Account.findOne({ Email: req.body.Email });
-        if (user) {
-            if (user.Password == req.body.Password) {
-                res.status(200).json(user)
-            } else { res.status(404).json(null) }
-        } else { res.status(404).json("account not found") }
-
-    } catch (e) {
-        console.log(e)
-        return res.status(500).json("server error")
-    }
-};

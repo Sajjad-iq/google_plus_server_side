@@ -13,7 +13,7 @@ exports.EditUserAccount = async (req, res) => {
             // edit my account
             const user = await Account.findByIdAndUpdate(req.params.id, {
                 $set: body.User
-            });
+            }).select(["UserName", "FamilyName", "Email", "Password", "ProfilePicture", "CoverPicture", "Description", "Followers", "Following", " IsAdmin"]).lean();
 
 
             if (body.User.UserName !== user.UserName || body.User.FamilyName !== user.FamilyName || body.User.ProfilePicture !== user.ProfilePicture) {

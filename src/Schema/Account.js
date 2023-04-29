@@ -34,6 +34,10 @@ const NotificationsSchema = new mongoose.Schema({
         type: String,
         default: ""
     },
+    NotificationToId: {
+        type: String,
+        default: ""
+    },
     NotificationOration: {
         type: String,
         default: ""

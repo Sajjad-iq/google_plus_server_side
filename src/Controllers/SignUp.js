@@ -14,7 +14,7 @@ exports.AddNewAccount = async (req, res) => {
 
 
     try {
-        const allAccounts = await Account.findOne({ Email: req.body.Email });
+        const allAccounts = await Account.findOne({ Email: req.body.Email }).select(["UserName", "FamilyName", "Email", "Password", "ProfilePicture", "CoverPicture", "Description", "Followers", "Following", " IsAdmin"]).lean();
         const { error, value } = signUpSchema.validate(body)
 
         if (!allAccounts) {
