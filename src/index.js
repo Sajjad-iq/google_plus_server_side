@@ -1,5 +1,4 @@
 
-import { createClient } from "redis";
 const express = require("express")
 const mongoose = require("mongoose")
 const helmet = require('helmet')
@@ -72,7 +71,6 @@ mongoose.connect(process.env.DataBase_URL, (err) => {
 let users = require('./Listeners/OnlineUsers')
 let notifications = require('./Listeners/Notifications')
 let onlineUsers = [];
-const pubClient = createClient({ url: "redis://localhost:6379" });
 
 
 const removeUser = (socketId) => {
