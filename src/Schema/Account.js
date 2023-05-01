@@ -23,8 +23,8 @@ const FollowingSchema = new mongoose.Schema({
 const NotificationsSchema = new mongoose.Schema({
 
     NotificationName: {
-        type: String,
-        default: ""
+        type: Array,
+        default: []
     },
     NotificationBody: {
         type: String,

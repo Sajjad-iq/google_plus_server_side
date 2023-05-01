@@ -6,10 +6,16 @@ exports.AddFollowersHandler = async (req, res) => {
 
     try {
         const body = req.body
+
+        // if it's  UnFollow operation
         if (body.operation === "remove") {
+
+            // remove user id in the target user object 
             const User = await Account.findByIdAndUpdate(body.FindUserId, {
                 $pull: { Followers: body.OwnerId }
             }).select(["_id", "UserName", "FamilyName", "Email", "Password", "ProfilePicture", "CoverPicture", "Description", "Followers", "Following", " IsAdmin"]).lean()
+
+            // remove in my account
             await Account.findByIdAndUpdate(body.OwnerId, {
                 $pull: {
                     Following: {
@@ -20,15 +26,32 @@ exports.AddFollowersHandler = async (req, res) => {
                 }
             }).select(["UserName", "FamilyName", "Email", "Password", "ProfilePicture", "CoverPicture", "Description", "Followers", "Following", " IsAdmin"]).lean()
             res.status(200).json(-1)
-        } else {
+        }
 
-            //add and get all notifications in this account
 
+
+
+
+        // if it's add follow operation
+        else {
+
+            //add and get all notifications in target user account
             const User = await Account.findByIdAndUpdate(body.FindUserId, {
                 $addToSet: {
                     Followers: body.OwnerId,
                 }
             }).select(["Notifications", "UserName", "FamilyName", "ProfilePicture"]).lean(true)
+
+            //update my account
+            await Account.findByIdAndUpdate(req.body.OwnerId, {
+                $addToSet: {
+                    Following: {
+                        FollowingName: `${User.UserName} ${User.FamilyName}`,
+                        FollowingId: req.body.FindUserId,
+                        FollowingImage: User.ProfilePicture
+                    }
+                }
+            }).select(["UserName"]).lean(true)
 
 
             // filter them by 
@@ -47,31 +70,31 @@ exports.AddFollowersHandler = async (req, res) => {
                             NotificationToId: body.FindUserId,
                             NotificationFrom: "people",
                             NotificationOration: "follow",
-                            NotificationOwnerImage: body.OwnerImage || "",
+                            NotificationOwnerImage: body.OwnerImage,
                             NotificationUsersIds: body.OwnerId
                         }
                     }
                 })
             }
 
+
+
             // if SpecificNotificationsPost isn't empty ?
+            else if (SpecificNotificationsPost.length > 0) {
 
-            else if (SpecificNotificationsPost[0].NotificationUsersIds.length >= 1) {
+                // clean the notification object
+                SpecificNotificationsPost[0].NotificationOwnerImage = SpecificNotificationsPost[0].NotificationOwnerImage.slice(0, 3)
+                SpecificNotificationsPost[0].NotificationName = SpecificNotificationsPost[0].NotificationName.slice(0, 8)
 
-                if (SpecificNotificationsPost[0].NotificationUsersIds.includes(body.OwnerId)) {
-                    if (SpecificNotificationsPost[0].NotificationUsersIds.length > 4) {
-                        SpecificNotificationsPost[0].NotificationOwnerImage.unshift(body.OwnerImage)
-                        SpecificNotificationsPost[0].NotificationName = SpecificNotificationsPost[0].NotificationUsersIds.length > 6 ? `${body.UserName}, ${SpecificNotificationsPost[0].NotificationName} and ${SpecificNotificationsPost[0].NotificationUsersIds.length} others` : `${body.UserName}, ${SpecificNotificationsPost[0].NotificationName}`
-                    }
-                } else {
-                    SpecificNotificationsPost[0].NotificationUsersIds.push(body.OwnerId)
+                // if the user don't add comments before in this post
+                if (!SpecificNotificationsPost[0].NotificationUsersIds.includes(body.OwnerId)) {
                     SpecificNotificationsPost[0].NotificationOwnerImage.unshift(body.OwnerImage)
-                    SpecificNotificationsPost[0].NotificationName = SpecificNotificationsPost[0].NotificationUsersIds.length > 6 ? `${body.UserName}, ${SpecificNotificationsPost[0].NotificationName} and ${SpecificNotificationsPost[0].NotificationUsersIds.length} others` : `${body.UserName}, ${SpecificNotificationsPost[0].NotificationName}`
+                    SpecificNotificationsPost[0].NotificationUsersIds.push(body.OwnerId)
+                    SpecificNotificationsPost[0].NotificationName.unshift(body.UserName)
                 }
 
 
-
-                await Account.updateOne({ "Notifications.NotificationToId": body.FindUserId, "Notifications.NotificationOration": "follow" }, {
+                await Account.updateOne({ _id: body.FindUserId }, {
                     $set: {
                         "Notifications.$[el].NotificationName": SpecificNotificationsPost[0].NotificationName,
                         "Notifications.$[el].NotificationOwnerImage": SpecificNotificationsPost[0].NotificationOwnerImage !== "" ? SpecificNotificationsPost[0].NotificationOwnerImage : "",
@@ -89,15 +112,7 @@ exports.AddFollowersHandler = async (req, res) => {
 
 
 
-            await Account.findByIdAndUpdate(req.body.OwnerId, {
-                $addToSet: {
-                    Following: {
-                        FollowingName: `${User.UserName} ${User.FamilyName}`,
-                        FollowingId: req.body.FindUserId,
-                        FollowingImage: User.ProfilePicture
-                    }
-                }
-            })
+
             res.status(200).json(1)
         }
     } catch (e) {
