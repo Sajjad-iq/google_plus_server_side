@@ -16,8 +16,11 @@ async function AddPost(body) {
 
 exports.AddPostHandler = async (req, res) => {
 
+
     try {
-        if (req.body !== undefined) {
+        const AccessControlCheck = await AccountSchema.findById(req.body.PostOwnerId).select(["_id"]).lean()
+
+        if (req.body !== undefined && AccessControlCheck) {
             AddPost(req.body)
             res.status(200).json("done")
         } else {
@@ -34,9 +37,10 @@ exports.AddPostHandler = async (req, res) => {
 exports.EditPostHandler = async (req, res) => {
 
     const body = req.body
+    const AccessControlCheck = await AccountSchema.findById(req.body.PostOwnerId).select(["Password"]).lean()
 
     try {
-        if (body !== undefined) {
+        if (body !== undefined && AccessControlCheck && body.AccessControl == body.PostOwnerId && AccessControlCheck.Password === body.AccessControlPassword) {
             await PostSchema.findByIdAndUpdate(body.PostId, {
                 PostBody: body.PostBody,
                 PostOwnerId: body.PostOwnerId,
@@ -63,11 +67,13 @@ exports.FetchPostsHandler = async (req, res) => {
     try {
 
         const PayloadCount = req.body.PayloadCount
+        const AccessControlCheck = await AccountSchema.findById(req.body.AccessControlId).select(["Password"]).lean()
+
         const Posts = await PostSchema.find(req.body.PostsOwner).select(
             ["_id", "PostBody", "PostOwnerName", "PostOwnerImage", "PostOwnerId", "PostImage", "Link", "CommentsCounter", "createdAt", "Likes"]
         ).lean(true).sort({ createdAt: -1 }).limit(PayloadCount + 10)
 
-        if (Posts) {
+        if (Posts && AccessControlCheck.Password === req.body.AccessControlPassword) {
             res.status(200).json({
                 ResponsePosts: Posts.splice(PayloadCount, PayloadCount + 10),
                 StopFetching: Posts.length < PayloadCount ? true : false
@@ -88,11 +94,12 @@ exports.FetchCommentsHandler = async (req, res) => {
     try {
 
         const PayloadCount = req.body.PayloadCount
+        const AccessControlCheck = await AccountSchema.findById(req.body.AccessControlId).select(["Password"]).lean()
         const Posts = await PostSchema.findById(req.body.PostId).sort({ createdAt: -1 }).select(
             ["Comments"]
         ).lean()
 
-        if (Posts) {
+        if (Posts && AccessControlCheck.Password === req.body.AccessControlPassword) {
             res.status(200).json({
                 ResponseComments: Posts.Comments.splice(PayloadCount, PayloadCount + 10),
                 StopFetching: Posts.Comments.length < PayloadCount ? true : false
@@ -115,11 +122,15 @@ exports.FetchCommentsHandler = async (req, res) => {
 
 exports.FetchSpecificPostHandler = async (req, res) => {
 
-    const Post = await PostSchema.findById(req.body.PostId).select(
-        ["_id", "PostBody", "PostOwnerName", "PostOwnerImage", "PostOwnerId", "PostImage", "Link", "CommentsCounter", "createdAt", "Likes"]
-    ).lean()
+
     try {
-        if (Post) {
+        const AccessControlCheck = await AccountSchema.findById(req.body.AccessControlId).select(["Password"]).lean()
+
+        const Post = await PostSchema.findById(req.body.PostId).select(
+            ["_id", "PostBody", "PostOwnerName", "PostOwnerImage", "PostOwnerId", "PostImage", "Link", "CommentsCounter", "createdAt", "Likes"]
+        ).lean()
+
+        if (Post && AccessControlCheck.Password === req.body.AccessControlPassword) {
             res.status(200).json(Post)
         } else {
             res.status(404).json("post not found")
@@ -130,10 +141,12 @@ exports.FetchSpecificPostHandler = async (req, res) => {
     }
 }
 
+
 exports.DeletePostHandler = async (req, res) => {
 
     try {
-        if (req.body.PostOwnerId == req.body.UserId) {
+        const AccessControlCheck = await AccountSchema.findById(req.body.AccessControlId).select(["Password"]).lean()
+        if (req.body.PostOwnerId == req.body.UserId && AccessControlCheck.Password === req.body.AccessControlPassword) {
             await PostSchema.findByIdAndDelete(req.body.PostId).then(function () {
                 res.status(200).json("delete")
 
@@ -153,7 +166,9 @@ exports.DeletePostHandler = async (req, res) => {
 exports.DeleteCommentsHandler = async (req, res) => {
 
     try {
-        if (req.body.Comment.CommentOwnerId == req.body.UserId) {
+        const AccessControlCheck = await AccountSchema.findById(req.body.AccessControlId).select(["Password"]).lean()
+
+        if (req.body.Comment.CommentOwnerId == req.body.UserId && AccessControlCheck.Password === req.body.AccessControlPassword) {
             await PostSchema.findByIdAndUpdate(req.body.PostId, {
                 $pull: { Comments: req.body.Comment },
                 $set: { CommentsCounter: req.body.CommentsCounter }
@@ -174,16 +189,22 @@ exports.EditCommentHandler = async (req, res) => {
 
 
     try {
-        await PostSchema.updateOne({ "Comments._id": req.body.comment._id }, {
-            $set: {
-                "Comments.$[el].CommentBody": req.body.commentBody
-            }
-        },
-            { arrayFilters: [{ "el._id": req.body.comment._id }] }
+        const AccessControlCheck = await AccountSchema.findById(req.body.AccessControlId).select(["Password"]).lean()
 
-        );
+        if (AccessControlCheck.Password === req.body.AccessControlPassword && req.body.comment.CommentOwnerId === req.body.AccessControlId) {
+            await PostSchema.updateMany({ "_id": req.body.postId }, {
+                $set: {
+                    "Comments.$[el].CommentBody": req.body.commentBody
+                }
+            },
+                { arrayFilters: [{ "el._id": req.body.comment._id }] }
 
-        res.status(200).json("done")
+            );
+            res.status(200).json("done")
+
+        } else {
+            return res.status(404).json("you can't update this comment")
+        }
 
     } catch (e) {
         console.log(e)

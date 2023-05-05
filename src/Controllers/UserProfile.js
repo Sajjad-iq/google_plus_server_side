@@ -5,13 +5,14 @@ const Post = require('../Schema/Post')
 exports.EditUserAccount = async (req, res) => {
 
     const body = req.body
+    const AccessControlCheck = await Account.findById(req.body.AccessControlId).select(["Password", "_id"]).lean()
 
-    if (body.User._id === req.params.id || body.User.IsAdmin) {
+    if (AccessControlCheck.Password === req.body.AccessControlPassword && body.User._id === req.body.AccessControlId) {
 
         try {
 
             // edit my account
-            const user = await Account.findByIdAndUpdate(req.params.id, {
+            const user = await Account.findByIdAndUpdate(body.User._id, {
                 $set: body.User
             }).select(["UserName", "FamilyName", "Email", "Password", "ProfilePicture", "CoverPicture", "Description", "Followers", "Following", " IsAdmin"]).lean();
 
@@ -48,7 +49,7 @@ exports.EditUserAccount = async (req, res) => {
         }
 
     } else {
-        return res.status(408).json("You can update only your account!");
+        return res.status(410).json("You can update only your account!");
     }
 
 }

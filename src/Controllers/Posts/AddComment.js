@@ -29,7 +29,6 @@ exports.AddCommentHandler = async (req, res) => {
                 return e.NotificationOration == "comment" && e.NotificationFromId == body.Comment.PostId
             })
 
-            console.log(SpecificNotificationsPost)
 
             // if the notification object for this post did not exist  ?
             if (SpecificNotificationsPost.length <= 0) {

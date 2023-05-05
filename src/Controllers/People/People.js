@@ -16,10 +16,12 @@ exports.FindUserHandler = async (req, res) => {
 exports.FetchAllUsersHandler = async (req, res) => {
     try {
         const PayloadCount = req.body.PayloadCount
+        const AccessControlCheck = await Account.findById(req.body.owner).select(["_id"]).lean()
         const Users = await Account.find().limit(PayloadCount + 10).sort({ createdAt: -1 }).select(
             ["_id", "UserName", "FamilyName", "ProfilePicture"]
         ).lean()
-        if (Users) {
+
+        if (Users && AccessControlCheck) {
             res.status(200).json({
                 ResponseUsers: Users.splice(PayloadCount, PayloadCount + 10),
                 StopFetching: Users.length < PayloadCount ? true : false

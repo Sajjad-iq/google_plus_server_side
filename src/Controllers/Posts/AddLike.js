@@ -7,7 +7,7 @@ exports.AddLikeHandler = async (req, res) => {
     try {
         const body = req.body
         let CommentsPost = null
-
+        const AccessControlCheck = await AccountSchema.findById(body.AccessControlId).select(["Password"]).lean()
 
         // delete or add like
         const targetPost = await PostSchema.findByIdAndUpdate(body.PostId,
@@ -21,8 +21,9 @@ exports.AddLikeHandler = async (req, res) => {
             ["_id", "PostBody", "PostOwnerName", "PostOwnerImage", "PostOwnerId", "PostImage", "Link", "CommentsCounter", "createdAt", "Likes"]
         ).lean(true)
 
+
         // return the post to client
-        if (body.Operation === "delete") {
+        if (body.Operation === "delete" && AccessControlCheck.Password == body.AccessControlPassword) {
             const index = targetPost.Likes.indexOf(body.UserId);
             targetPost.Likes.splice(index, 1);
 
@@ -33,7 +34,7 @@ exports.AddLikeHandler = async (req, res) => {
 
 
         //  return the post to client and add notification 
-        else {
+        else if (body.Operation === "add" && AccessControlCheck.Password == body.AccessControlPassword) {
 
             targetPost.Likes.push(body.UserId)
 
@@ -71,8 +72,8 @@ exports.AddLikeHandler = async (req, res) => {
                 else {
 
                     // clean the notification object
-                    CommentsPost.NotificationOwnerImage = CommentsPost.NotificationOwnerImage.slice(0, 3)
-                    CommentsPost.NotificationName = CommentsPost.NotificationName.slice(0, 8)
+                    CommentsPost.NotificationOwnerImage = CommentsPost.NotificationOwnerImage.slice(0, 4)
+                    CommentsPost.NotificationName = CommentsPost.NotificationName.slice(0, 7)
 
                     // if the user don't add comments before in this post
                     if (!CommentsPost.NotificationUsersIds.includes(body.UserId)) {
@@ -102,8 +103,10 @@ exports.AddLikeHandler = async (req, res) => {
             // if SpecificNotificationsPost isn't empty ?
             else if (SpecificNotificationsPost.length > 0) {
 
+
+
                 // clean the notification object
-                SpecificNotificationsPost[0].NotificationOwnerImage = SpecificNotificationsPost[0].NotificationOwnerImage.slice(0, 3)
+                SpecificNotificationsPost[0].NotificationOwnerImage = SpecificNotificationsPost[0].NotificationOwnerImage.slice(0, 4)
                 SpecificNotificationsPost[0].NotificationName = SpecificNotificationsPost[0].NotificationName.slice(0, 8)
 
                 // if the user don't add Like before in this post
