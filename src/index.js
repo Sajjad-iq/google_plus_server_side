@@ -57,6 +57,8 @@ mongoose.connect(process.env.DataBase_URL, (err) => {
     else console.log("done")
 })
 
+app.set('trust proxy', 1)
+
 // sessions config
 app.use(session({
     secret: process.env.SESSION_SECRET,
