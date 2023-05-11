@@ -61,7 +61,7 @@ exports.EditPostHandler = async (req, res) => {
 
 
 
-exports.FetchPostsHandler = async (req, res) => {
+exports.FetchPostsHandler = async (req, res, next) => {
 
     try {
 
@@ -73,6 +73,11 @@ exports.FetchPostsHandler = async (req, res) => {
 
         if (Posts && req.session.UserId) {
 
+            res.header('Access-Control-Allow-Credentials', true);
+            res.header('Access-Control-Allow-Origin', req.headers.origin);
+            res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
+            res.header('Access-Control-Allow-Headers', 'X-Requested-With, X-HTTP-Method-Override, Content-Type, Accept');
+            next();
             res.status(200).json({
                 ResponsePosts: Posts.splice(PayloadCount, PayloadCount + 10),
                 StopFetching: Posts.length < PayloadCount ? true : false
