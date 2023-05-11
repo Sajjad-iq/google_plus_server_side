@@ -38,6 +38,7 @@ app.use(cors({
     credentials: true,
     methods: "GET, POST, PUT, DELETE"
 }));
+
 app.use(function (req, res, next) {
     res.header("Access-Control-Allow-Credentials", true);
     res.header("Access-Control-Allow-Origin", process.env.ORIGIN);
@@ -46,6 +47,7 @@ app.use(function (req, res, next) {
     res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
     next();
 });
+
 app.use(helmet())
 app.use(morgan("common"))
 app.use(bodyParser.json({ limit: '50mb' }));
@@ -71,17 +73,16 @@ mongoose.connect(process.env.DataBase_URL, (err) => {
     else console.log("done")
 })
 
-app.set('trust proxy', 1)
+app.set('trust proxy')
 
 // sessions config
 app.use(session({
     secret: process.env.SESSION_SECRET,
     saveUninitialized: false,
     resave: false,
-    domain: process.env.ORIGIN,
     cookie: {
         maxAge: 1000 * 60 * 60 * 24,
-        secure: process.env.NODE_ENV === "production",
+        secure: true,
         httpOnly: true,
         sameSite: "none",
         domain: process.env.ORIGIN
