@@ -30,7 +30,9 @@ const limiter = rateLimiter({
 dotenv.config()
 
 app.disable("X-Powered-By");
+
 app.set("trust proxy", 1)
+
 app.use(cors({
     origin: process.env.ORIGIN,
     credentials: true,
@@ -76,13 +78,13 @@ app.use(session({
     secret: process.env.SESSION_SECRET,
     saveUninitialized: false,
     resave: false,
-
+    domain: process.env.ORIGIN,
     cookie: {
         maxAge: 1000 * 60 * 60 * 24,
         secure: process.env.NODE_ENV === "production",
         httpOnly: true,
         sameSite: "none",
-        domain: "http://localhost:5173"
+        domain: process.env.ORIGIN
     },
     store: MongoStore.create({
         mongoUrl: process.env.DataBase_URL,
