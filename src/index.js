@@ -71,7 +71,7 @@ app.use(session({
         maxAge: 1000 * 60 * 60 * 24,
         secure: true,
         httpOnly: true,
-        sameSite: "none",
+        sameSite: true,
     },
     store: MongoStore.create({
         mongoUrl: process.env.DataBase_URL,
