@@ -67,6 +67,7 @@ exports.FetchPostsHandler = async (req, res) => {
 
         const PayloadCount = req.body.PayloadCount
 
+        console.log(req.session)
         const Posts = await PostSchema.find(req.body.PostsOwner).select(
             ["_id", "PostBody", "PostOwnerName", "PostOwnerImage", "PostOwnerId", "PostImage", "Link", "CommentsCounter", "createdAt", "Likes"]
         ).lean(true).sort({ createdAt: -1 }).limit(PayloadCount + 10)
