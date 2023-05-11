@@ -72,12 +72,6 @@ exports.FetchPostsHandler = async (req, res) => {
         ).lean(true).sort({ createdAt: -1 }).limit(PayloadCount + 10)
 
         if (Posts && req.session.UserId) {
-
-            res.header('Access-Control-Allow-Credentials', true);
-            res.header('Access-Control-Allow-Origin', "http://localhost:5173");
-            res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
-            res.header('Access-Control-Allow-Headers', 'X-Requested-With, X-HTTP-Method-Override, Content-Type, Accept');
-            next();
             res.status(200).json({
                 ResponsePosts: Posts.splice(PayloadCount, PayloadCount + 10),
                 StopFetching: Posts.length < PayloadCount ? true : false

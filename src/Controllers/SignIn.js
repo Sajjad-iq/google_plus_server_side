@@ -1,7 +1,7 @@
 const Account = require('../Schema/Account')
 const bcrypt = require("bcrypt")
 
-exports.SignInHandler = async (req, res, next) => {
+exports.SignInHandler = async (req, res) => {
 
 
     try {
@@ -12,12 +12,7 @@ exports.SignInHandler = async (req, res, next) => {
         if (user) {
             if (PasswordCompare) {
                 req.session.UserId = user._id
-
-                res.header('Access-Control-Allow-Credentials', true);
-                res.header('Access-Control-Allow-Origin', "http://localhost:5173");
-                res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
-                res.header('Access-Control-Allow-Headers', 'X-Requested-With, X-HTTP-Method-Override, Content-Type, Accept');
-                next();
+                res.header("Content-Type", "application/json")
                 res.status(200).json({
                     User: user
                 })
