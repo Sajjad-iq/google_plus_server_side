@@ -28,25 +28,13 @@ const limiter = rateLimiter({
 
 // app extensions
 dotenv.config()
-
-app.disable("X-Powered-By");
-
-app.set("trust proxy", 1)
+app.enable('trust proxy');
 
 app.use(cors({
     origin: process.env.ORIGIN,
     credentials: true,
     methods: "GET, POST, PUT, DELETE"
 }));
-
-app.use(function (req, res, next) {
-    res.header("Access-Control-Allow-Credentials", true);
-    res.header("Access-Control-Allow-Origin", process.env.ORIGIN);
-    res.header("Access-Control-Allow-Headers",
-        "Origin, X-Requested-With, Content-Type, Accept, Authorization, X-HTTP-Method-Override, Set-Cookie, Cookie");
-    res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
-    next();
-});
 
 app.use(helmet())
 app.use(morgan("common"))
@@ -73,7 +61,6 @@ mongoose.connect(process.env.DataBase_URL, (err) => {
     else console.log("done")
 })
 
-app.set('trust proxy')
 
 // sessions config
 app.use(session({
@@ -85,7 +72,6 @@ app.use(session({
         secure: true,
         httpOnly: true,
         sameSite: "none",
-        domain: process.env.ORIGIN
     },
     store: MongoStore.create({
         mongoUrl: process.env.DataBase_URL,
