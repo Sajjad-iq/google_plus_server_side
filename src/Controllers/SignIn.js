@@ -13,6 +13,11 @@ exports.SignInHandler = async (req, res) => {
             if (PasswordCompare) {
                 req.session.UserId = user._id
 
+                res.header('Access-Control-Allow-Credentials', true);
+                res.header('Access-Control-Allow-Origin', "http://localhost:5173");
+                res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
+                res.header('Access-Control-Allow-Headers', 'X-Requested-With, X-HTTP-Method-Override, Content-Type, Accept');
+                next();
                 res.status(200).json({
                     User: user
                 })

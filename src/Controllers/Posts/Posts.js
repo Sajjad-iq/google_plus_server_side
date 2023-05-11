@@ -74,7 +74,7 @@ exports.FetchPostsHandler = async (req, res, next) => {
         if (Posts && req.session.UserId) {
 
             res.header('Access-Control-Allow-Credentials', true);
-            res.header('Access-Control-Allow-Origin', req.headers.origin);
+            res.header('Access-Control-Allow-Origin', "http://localhost:5173");
             res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
             res.header('Access-Control-Allow-Headers', 'X-Requested-With, X-HTTP-Method-Override, Content-Type, Accept');
             next();
