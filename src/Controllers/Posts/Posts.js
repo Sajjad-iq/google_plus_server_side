@@ -61,7 +61,7 @@ exports.EditPostHandler = async (req, res) => {
 
 
 
-exports.FetchPostsHandler = async (req, res, next) => {
+exports.FetchPostsHandler = async (req, res) => {
 
     try {
 

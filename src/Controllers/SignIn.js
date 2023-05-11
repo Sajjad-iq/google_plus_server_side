@@ -1,7 +1,7 @@
 const Account = require('../Schema/Account')
 const bcrypt = require("bcrypt")
 
-exports.SignInHandler = async (req, res) => {
+exports.SignInHandler = async (req, res, next) => {
 
 
     try {
