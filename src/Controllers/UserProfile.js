@@ -5,9 +5,8 @@ const Post = require('../Schema/Post')
 exports.EditUserAccount = async (req, res) => {
 
     const body = req.body
-    const AccessControlCheck = await Account.findById(req.body.AccessControlId).select(["Password", "_id"]).lean()
 
-    if (AccessControlCheck.Password === req.body.AccessControlPassword && body.User._id === req.body.AccessControlId) {
+    if (req.session.UserId) {
 
         try {
 
@@ -50,6 +49,23 @@ exports.EditUserAccount = async (req, res) => {
 
     } else {
         return res.status(410).json("You can update only your account!");
+    }
+
+}
+
+
+
+exports.FirstLoad = async (req, res) => {
+
+
+    try {
+        const user = await Account.findById(req.session.UserId)
+        if (user) res.status(200).json(user)
+        else res.status(404).json("please sign in")
+
+    } catch (e) {
+        console.log(e)
+        return res.status(500).json("server error");
     }
 
 }

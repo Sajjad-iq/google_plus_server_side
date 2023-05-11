@@ -11,14 +11,27 @@ const bodyParser = require("body-parser")
 const compression = require('compression')
 const http = require("http")
 const server = http.createServer(app);
-const { Server } = require("socket.io");
+const MongoSanitize = require("express-mongo-sanitize")
+const rateLimiter = require("express-rate-limit");
+const session = require("express-session")
+const MongoStore = require('connect-mongo');
+const cookieParser = require("cookie-parser")
 
 
-// app extensions 
-app.use(cors({
-    origin: '*'
-}));
+// limit the requests
+const limiter = rateLimiter({
+    max: 50,
+    windowMS: 30000,
+    message: "You can't make any more requests at the moment. Try again later",
+});
+
+
+// app extensions
 dotenv.config()
+app.use(cors({
+    origin: process.env.ORIGIN,
+    credentials: true
+}));
 app.use(helmet())
 app.use(morgan("common"))
 app.use(bodyParser.json({ limit: '50mb' }));
@@ -29,15 +42,39 @@ app.use(compression({
     threshold: 100 * 1000
 }))
 app.use(hpp())
+app.use(
+    MongoSanitize({
+        replaceWith: '_',
+    }),
+);
+app.use(limiter)
+app.use(cookieParser())
 
+// database config
+mongoose.set('strictQuery', false)
+mongoose.connect(process.env.DataBase_URL, (err) => {
+    if (err) console.log(err)
+    else console.log("done")
+})
 
-// socket io server
-const io = new Server(server, {
-    cors: {
-        origin: "*",
-        methods: ["GET", "POST"],
+// sessions config
+app.use(session({
+    secret: process.env.SESSION_SECRET,
+    saveUninitialized: false,
+    resave: false,
+    cookie: {
+        maxAge: 1000 * 60 * 60 * 24,
+        secure: process.env.NODE_ENV === "production",
+        httpOnly: false
     },
-});
+    store: MongoStore.create({
+        mongoUrl: process.env.DataBase_URL,
+        autoRemove: 'interval',
+        autoRemoveInterval: 60 // In minutes. Default
+    })
+}))
+
+
 
 // app routes
 const PostsRoutes = require('./Routes/Posts')
@@ -55,40 +92,6 @@ app.use("/api/Search", SearchRoutes)
 app.use("/api/People", PeopleRoutes)
 app.use("/api/Notifications", NotificationsRoutes)
 
-
-
-// database config
-mongoose.set('strictQuery', false)
-mongoose.connect(process.env.DataBase_URL, (err) => {
-    if (err) console.log(err)
-    else console.log("done")
-})
-
-
-
-// socket io config
-
-let users = require('./Listeners/OnlineUsers')
-let notifications = require('./Listeners/Notifications')
-let onlineUsers = [];
-
-
-const removeUser = (socketId) => {
-    onlineUsers = onlineUsers.filter((user) => user.socketId !== socketId);
-};
-
-
-const Connect = (socket) => {
-    users.NewUser(socket, onlineUsers, io)
-    notifications.NewNotifications(socket, onlineUsers, io)
-
-    socket.on("disconnect", () => {
-        removeUser(socket.id);
-    });
-}
-
-
-io.on("connection", Connect);
 
 server.listen(process.env.PORT, () => console.log("server is running"))
 

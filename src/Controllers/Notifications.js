@@ -2,11 +2,10 @@ const AccountSchema = require('../Schema/Account')
 const mongoose = require("mongoose")
 
 exports.FetchNotifications = async (req, res) => {
+
     try {
 
-        const AccessControlCheck = await AccountSchema.findById(req.body.AccessControlId).select(["Password"]).lean()
-
-        if (AccessControlCheck.Password === req.body.AccessControlPassword) {
+        if (req.session.UserId) {
 
             const UserNotifications = await AccountSchema.aggregate([
                 { $match: { _id: mongoose.Types.ObjectId(req.body.AccessControlId) } },
@@ -18,7 +17,8 @@ exports.FetchNotifications = async (req, res) => {
 
             if (UserNotifications.length >= 1) res.status(200).json(UserNotifications[0].Notifications)
             else res.status(200).json([])
-        }
+        } else return res.status(404).json("your don't sign in")
+
     } catch (e) {
         console.log(e)
         return res.status(500).json("server error")
