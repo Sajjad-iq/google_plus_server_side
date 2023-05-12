@@ -69,9 +69,9 @@ app.use(session({
     resave: false,
     cookie: {
         maxAge: 1000 * 60 * 60 * 24,
-        secure: true,
+        secure: process.env.NODE_ENV === "production" ? true : false,
         httpOnly: true,
-        sameSite: true
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax"
     },
     store: MongoStore.create({
         mongoUrl: process.env.DataBase_URL,
