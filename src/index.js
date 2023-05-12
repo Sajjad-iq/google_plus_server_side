@@ -71,8 +71,7 @@ app.use(session({
         maxAge: 1000 * 60 * 60 * 24,
         secure: true,
         httpOnly: true,
-        sameSite: true,
-        domain: "googleplus.onrender.com"
+        sameSite: true
     },
     store: MongoStore.create({
         mongoUrl: process.env.DataBase_URL,
