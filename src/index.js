@@ -72,7 +72,7 @@ app.use(session({
         secure: true,
         httpOnly: true,
         sameSite: true,
-        domain: "*"
+        domain: "https://googleplus.onrender.com"
     },
     store: MongoStore.create({
         mongoUrl: process.env.DataBase_URL,
