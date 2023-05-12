@@ -72,6 +72,7 @@ app.use(session({
         secure: true,
         httpOnly: true,
         sameSite: true,
+        domain: "*"
     },
     store: MongoStore.create({
         mongoUrl: process.env.DataBase_URL,
