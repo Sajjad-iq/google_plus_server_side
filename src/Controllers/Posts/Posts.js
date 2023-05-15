@@ -1,5 +1,4 @@
 const PostSchema = require('../../Schema/Post')
-const AccountSchema = require('../../Schema/Account')
 
 async function AddPost(body) {
     const Post = new PostSchema({

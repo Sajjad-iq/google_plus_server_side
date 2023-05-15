@@ -90,6 +90,7 @@ const ProfileRoutes = require('./Routes/UserProfile')
 const SearchRoutes = require('./Routes/search')
 const PeopleRoutes = require('./Routes/People')
 const NotificationsRoutes = require('./Routes/Notifications');
+const CollectionsRoutes = require('./Routes/Collections');
 app.use("/api/SignUp", SignUpRoutes)
 app.use("/api/SignIn", SignInRoutes)
 app.use("/api/Profile", ProfileRoutes)
@@ -97,6 +98,7 @@ app.use("/api/Posts", PostsRoutes)
 app.use("/api/Search", SearchRoutes)
 app.use("/api/People", PeopleRoutes)
 app.use("/api/Notifications", NotificationsRoutes)
+app.use("/api/Collections", CollectionsRoutes)
 
 
 server.listen(process.env.PORT, () => console.log("server is running"))
