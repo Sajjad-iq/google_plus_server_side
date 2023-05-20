@@ -59,7 +59,7 @@ exports.FirstLoad = async (req, res) => {
 
 
     try {
-        const user = await Account.findById(req.session.UserId)
+        const user = await Account.findById(req.session.UserId).select(["UserName", "FamilyName", "Email", "Password", "ProfilePicture", "CoverPicture", "Description", "Followers", "Following"]).lean();
         if (user) res.status(200).json(user)
         else res.status(404).json("please sign in")
 

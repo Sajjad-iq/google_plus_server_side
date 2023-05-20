@@ -7,7 +7,11 @@ async function AddPost(body) {
         PostOwnerName: body.PostOwnerName,
         PostImage: body.PostImage,
         PostOwnerImage: body.PostOwnerImage,
-        Link: body.link
+        Link: body.link,
+        PostFrom: body.PostFrom,
+        CollectionName: body.CollectionName,
+        CollectionId: body.CollectionId,
+        PrivateShareUsersIds: body.PrivateShareUsersIds
     })
     await Post.save()
 }
@@ -66,9 +70,8 @@ exports.FetchPostsHandler = async (req, res) => {
 
         const PayloadCount = req.body.PayloadCount
 
-        console.log(req.session)
         const Posts = await PostSchema.find(req.body.PostsOwner).select(
-            ["_id", "PostBody", "PostOwnerName", "PostOwnerImage", "PostOwnerId", "PostImage", "Link", "CommentsCounter", "createdAt", "Likes"]
+            ["_id", "PostBody", "PostOwnerName", "PostOwnerImage", "PostOwnerId", "PostImage", "Link", "CommentsCounter", "createdAt", "Likes", "PostFrom", "CollectionName", " CollectionId", "PrivateShareUsersIds"]
         ).lean(true).sort({ createdAt: -1 }).limit(PayloadCount + 10)
 
         if (Posts && req.session.UserId) {
@@ -117,7 +120,7 @@ exports.FetchSpecificPostHandler = async (req, res) => {
 
     try {
         const Post = await PostSchema.findById(req.body.PostId).select(
-            ["_id", "PostBody", "PostOwnerName", "PostOwnerImage", "PostOwnerId", "PostImage", "Link", "CommentsCounter", "createdAt", "Likes"]
+            ["_id", "PostBody", "PostOwnerName", "PostOwnerImage", "PostOwnerId", "PostImage", "Link", "CommentsCounter", "createdAt", "Likes", "PostFrom", "CollectionName", " CollectionId", "PrivateShareUsersIds"]
         ).lean()
 
         if (Post && req.session.UserId) {

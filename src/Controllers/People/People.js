@@ -3,7 +3,6 @@ const Account = require('../../Schema/Account')
 
 exports.FindUserHandler = async (req, res) => {
 
-
     try {
         const user = await Account.findById(req.body.id).select(["UserName", "FamilyName", "Email", "Password", "ProfilePicture", "CoverPicture", "Description", "Followers", "Following", " IsAdmin"]).lean();
 
@@ -21,7 +20,7 @@ exports.FetchAllUsersHandler = async (req, res) => {
         const PayloadCount = req.body.PayloadCount
 
         const Users = await Account.find().limit(PayloadCount + 10).sort({ createdAt: -1 }).select(
-            ["_id", "UserName", "FamilyName", "ProfilePicture"]
+            ["_id", "UserName", "FamilyName", "ProfilePicture", "Description", "Followers"]
         ).lean()
 
         if (Users && req.session.UserId) {

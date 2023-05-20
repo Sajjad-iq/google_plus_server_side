@@ -63,13 +63,28 @@ const AddPostSchema = new mongoose.Schema({
         type: Array,
         default: []
     },
-
     CommentsCounter: {
         type: Number,
         default: 0
     },
     Comments: {
         type: [Comments],
+        default: []
+    },
+    PostFrom: {
+        type: String,
+        default: ""
+    },
+    CollectionName: {
+        type: String,
+        default: ""
+    },
+    CollectionId: {
+        type: String,
+        default: ""
+    },
+    PrivateShareUsersIds: {
+        type: Array,
         default: []
     }
 },
