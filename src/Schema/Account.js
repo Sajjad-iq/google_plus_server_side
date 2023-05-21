@@ -107,6 +107,10 @@ const AccountSchema = new mongoose.Schema({
         type: [NotificationsSchema],
         default: []
     },
+    FollowingCollections: {
+        type: Array,
+        default: []
+    }
 },
     { timestamps: true }
 )

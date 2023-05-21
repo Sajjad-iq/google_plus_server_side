@@ -83,6 +83,10 @@ const AddPostSchema = new mongoose.Schema({
         type: String,
         default: ""
     },
+    CollectionOwnerId: {
+        type: String,
+        default: ""
+    },
     PrivateShareUsersIds: {
         type: Array,
         default: []

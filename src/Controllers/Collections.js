@@ -1,4 +1,5 @@
 const CollectionsSchema = require('../Schema/Collection')
+const Account = require('../Schema/Account')
 
 async function AddNewCollection(body) {
     const Collection = new CollectionsSchema({
@@ -42,5 +43,60 @@ exports.FetchCollections = async (req, res) => {
         }
 
     } else return res.status(404).json("your don't sign in")
+
+}
+
+
+exports.AddFollowToCollection = async (req, res) => {
+
+
+    try {
+        const body = req.body
+
+        console.log(body)
+        // if it's  UnFollow operation
+        if (body.operation === "delete") {
+
+            // remove Collection id in the target user object 
+            await Account.findByIdAndUpdate(body.UserId, {
+                $pull: { FollowingCollections: body.CollectionId }
+            }).select(["_id", "UserName", "FamilyName", "ProfilePicture", "CoverPicture", "Description", "Followers", "Following", " IsAdmin", "FollowingCollections"]).lean()
+
+            // remove in target Collection
+            await CollectionsSchema.findByIdAndUpdate(body.CollectionId, {
+                $pull: {
+                    CollectionFollowing: body.UserId
+                }
+            }).lean()
+            res.status(200).json(-1)
+        }
+
+
+
+
+
+        // if it's add follow operation
+        else if (body.operation === "add") {
+
+            // add Collection id in the target user object 
+
+            await Account.findByIdAndUpdate(body.UserId, {
+                $addToSet: { FollowingCollections: body.CollectionId }
+            }).select(["_id", "UserName", "FamilyName", "Email", "Password", "ProfilePicture", "CoverPicture", "Description", "Followers", "Following", " IsAdmin", "FollowingCollections"]).lean()
+
+            // add in target Collection
+            await CollectionsSchema.findByIdAndUpdate(body.CollectionId, {
+                $addToSet: {
+                    CollectionFollowing: body.UserId
+                }
+            }).lean()
+            res.status(200).json(1)
+        }
+
+    } catch (e) {
+        console.log(e)
+        return res.status(500).json("server error")
+    }
+
 
 }

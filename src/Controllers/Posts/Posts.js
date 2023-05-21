@@ -11,6 +11,7 @@ async function AddPost(body) {
         PostFrom: body.PostFrom,
         CollectionName: body.CollectionName,
         CollectionId: body.CollectionId,
+        CollectionOwnerId: body.CollectionOwnerId,
         PrivateShareUsersIds: body.PrivateShareUsersIds
     })
     await Post.save()
@@ -49,7 +50,8 @@ exports.EditPostHandler = async (req, res) => {
                 PostOwnerName: body.PostOwnerName,
                 PostImage: body.PostImage,
                 PostOwnerImage: body.PostOwnerImage,
-                Link: body.link
+                Link: body.link,
+
             }).lean()
 
             res.status(200).json("done")
@@ -71,12 +73,18 @@ exports.FetchPostsHandler = async (req, res) => {
         const PayloadCount = req.body.PayloadCount
 
         const Posts = await PostSchema.find(req.body.PostsOwner).select(
-            ["_id", "PostBody", "PostOwnerName", "PostOwnerImage", "PostOwnerId", "PostImage", "Link", "CommentsCounter", "createdAt", "Likes", "PostFrom", "CollectionName", " CollectionId", "PrivateShareUsersIds"]
+            ["_id", "PostBody", "PostOwnerName", "PostOwnerImage", "PostOwnerId", "PostImage", "Link", "CommentsCounter", "createdAt", "Likes", "PostFrom", "CollectionName", "CollectionId", "PrivateShareUsersIds", "CollectionOwnerId"]
         ).lean(true).sort({ createdAt: -1 }).limit(PayloadCount + 10)
 
         if (Posts && req.session.UserId) {
+
+            const NewPosts = Posts.map((e) => {
+                if (e.PostFrom === "Collections") {
+                    if (req.body.FollowingCollections.includes(e.CollectionId) || e.CollectionOwnerId === req.session.UserId) return e
+                } else return e
+            })
             res.status(200).json({
-                ResponsePosts: Posts.splice(PayloadCount, PayloadCount + 10),
+                ResponsePosts: NewPosts.splice(PayloadCount, PayloadCount + 10),
                 StopFetching: Posts.length < PayloadCount ? true : false
             })
 

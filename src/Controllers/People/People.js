@@ -4,7 +4,7 @@ const Account = require('../../Schema/Account')
 exports.FindUserHandler = async (req, res) => {
 
     try {
-        const user = await Account.findById(req.body.id).select(["UserName", "FamilyName", "Email", "Password", "ProfilePicture", "CoverPicture", "Description", "Followers", "Following", " IsAdmin"]).lean();
+        const user = await Account.findById(req.body.id).select(["UserName", "FamilyName", "Email", "Password", "ProfilePicture", "CoverPicture", "Description", "Followers", "Following", " IsAdmin", "FollowingCollections"]).lean();
 
         if (user && req.session.UserId) res.status(200).json(user)
         else res.status(404).json("user not found")
