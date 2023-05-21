@@ -21,7 +21,7 @@ exports.AddLikeHandler = async (req, res) => {
                     { $addToSet: { Likes: body.UserId } }
 
             ).select(
-                ["_id", "PostBody", "PostOwnerName", "PostOwnerImage", "PostOwnerId", "PostImage", "Link", "CommentsCounter", "createdAt", "Likes"]
+                ["_id", "PostBody", "PostOwnerName", "PostOwnerImage", "PostOwnerId", "PostImage", "Link", "CommentsCounter", "createdAt", "Likes", "PostFrom", "CollectionName", "CollectionId", "PrivateShareUsersIds", "CollectionOwnerId"]
             ).lean(true)
 
 

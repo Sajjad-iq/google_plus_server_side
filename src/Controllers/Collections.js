@@ -100,3 +100,46 @@ exports.AddFollowToCollection = async (req, res) => {
 
 
 }
+
+
+exports.EditCollection = async (req, res) => {
+    const body = req.body
+
+    try {
+
+        if (body !== undefined && req.session.UserId == body.CollectionOwnerId) {
+            await CollectionsSchema.findByIdAndUpdate(body.CollectionId, {
+                CollectionTitle: body.CollectionTitle,
+                Tagline: body.Tagline,
+                CollectionsCoverPicture: body.CollectionsCoverPicture,
+                Color: body.Color,
+                CollectionOwnerName: body.CollectionOwnerName,
+                CollectionOwnerImage: body.CollectionOwnerImage
+            }).lean()
+
+            res.status(200).json("done")
+        } else {
+            return res.status(404).json("modify error")
+        }
+    } catch (e) {
+        console.log(e)
+        return res.status(500).json("server error")
+    }
+}
+
+exports.DeleteCollection = async (req, res) => {
+    try {
+        if (req.body.CollectionOwnerId == req.session.UserId) {
+            await CollectionsSchema.findByIdAndDelete(req.body.CollectionId).then(function () {
+                res.status(200).json("delete")
+
+            }).catch(function (error) {
+                res.status(400).json(error.message)
+            });
+        } else return res.status(404).json("your don't sign in")
+
+    } catch (e) {
+        console.log(e)
+        return res.status(500).json("server error")
+    }
+}
