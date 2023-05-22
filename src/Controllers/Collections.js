@@ -1,5 +1,6 @@
 const CollectionsSchema = require('../Schema/Collection')
 const Account = require('../Schema/Account')
+const Posts = require('../Schema/Post')
 
 async function AddNewCollection(body) {
     const Collection = new CollectionsSchema({
@@ -53,7 +54,6 @@ exports.AddFollowToCollection = async (req, res) => {
     try {
         const body = req.body
 
-        console.log(body)
         // if it's  UnFollow operation
         if (body.operation === "delete") {
 
@@ -117,9 +117,13 @@ exports.EditCollection = async (req, res) => {
                 CollectionOwnerImage: body.CollectionOwnerImage
             }).lean()
 
+            await Posts.findOneAndUpdate({ CollectionId: req.body.CollectionId }, {
+                CollectionName: body.CollectionTitle,
+            }).select(["_id", "CollectionName"]).lean(true)
+
             res.status(200).json("done")
         } else {
-            return res.status(404).json("modify error")
+            return res.status(405).json("modify error")
         }
     } catch (e) {
         console.log(e)
@@ -131,8 +135,12 @@ exports.DeleteCollection = async (req, res) => {
     try {
         if (req.body.CollectionOwnerId == req.session.UserId) {
             await CollectionsSchema.findByIdAndDelete(req.body.CollectionId).then(function () {
-                res.status(200).json("delete")
+            }).catch(function (error) {
+                res.status(400).json(error.message)
+            });
 
+            await Posts.findOneAndDelete({ CollectionId: req.body.CollectionId }).then(function () {
+                res.status(200).json("delete")
             }).catch(function (error) {
                 res.status(400).json(error.message)
             });
