@@ -18,6 +18,7 @@ const MongoStore = require('connect-mongo');
 const cookieParser = require("cookie-parser")
 
 
+
 // limit the requests
 const limiter = rateLimiter({
     max: 50,
@@ -53,7 +54,6 @@ app.use(
 );
 app.use(limiter)
 app.use(cookieParser())
-
 // database config
 mongoose.set('strictQuery', false)
 mongoose.connect(process.env.DataBase_URL, (err) => {
@@ -79,6 +79,7 @@ app.use(session({
         autoRemoveInterval: 60 // In minutes. Default
     })
 }))
+
 
 
 

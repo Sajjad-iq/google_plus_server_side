@@ -1,11 +1,13 @@
 const PostSchema = require('../../Schema/Post')
+const sharp = require('sharp');
 
-async function AddPost(body) {
+async function AddPost(body, postImage) {
+
     const Post = new PostSchema({
         PostBody: body.PostBody,
         PostOwnerId: body.PostOwnerId,
         PostOwnerName: body.PostOwnerName,
-        PostImage: body.PostImage,
+        PostImage: postImage,
         PostOwnerImage: body.PostOwnerImage,
         Link: body.link,
         PostFrom: body.PostFrom,
@@ -22,9 +24,24 @@ exports.AddPostHandler = async (req, res) => {
 
 
     try {
-
         if (req.body !== undefined && req.session.UserId) {
-            AddPost(req.body)
+
+            // convert from base64 
+            let base64Image = req.body.PostImage.split(';base64,').pop();
+            let imgBuffer = Buffer.from(base64Image, 'base64');
+
+            // resize 
+            sharp(imgBuffer)
+                .resize(1280, 720)
+                .webp({ quality: 75, compressionLevel: 7 })
+                .toBuffer()
+                // add new post
+                .then(data => {
+                    let newImagebase64 = `data:image/webp;base64,${data.toString('base64')}`
+                    AddPost(req.body, newImagebase64)
+                })
+                .catch(err => console.log(`downisze issue ${err}`))
+
             res.status(200).json("done")
         } else {
             return res.status(404).json("post error")

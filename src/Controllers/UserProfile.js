@@ -1,5 +1,6 @@
 const Account = require('../Schema/Account')
 const Post = require('../Schema/Post')
+const sharp = require('sharp');
 
 
 exports.EditUserAccount = async (req, res) => {
@@ -10,6 +11,45 @@ exports.EditUserAccount = async (req, res) => {
 
         try {
 
+            if (body.User.ProfilePicture !== "") {
+                // convert user profile picture from base64 
+                let ProfilePictureBase64Image = body.User.ProfilePicture.split(';base64,').pop();
+                let ProfilePictureimgBuffer = Buffer.from(ProfilePictureBase64Image, 'base64');
+
+                // resize 
+                sharp(ProfilePictureimgBuffer)
+                    .resize(150, 150)
+                    .webp({ quality: 75, compressionLevel: 7 })
+                    .toBuffer()
+                    // add new post
+                    .then(data => {
+                        let newImagebase64 = `data:image/webp;base64,${data.toString('base64')}`
+                        body.User.ProfilePicture = newImagebase64
+                    })
+                    .catch(err => console.log(`downisze issue ${err}`))
+
+            }
+
+            if (body.User.CoverPicture !== "") {
+
+                // convert user profile picture from base64 
+                let ProfileCoverPictureBase64Image = body.User.CoverPicture.split(';base64,').pop();
+                let ProfileCoverPictureimgBuffer = Buffer.from(ProfileCoverPictureBase64Image, 'base64');
+
+                // resize 
+                sharp(ProfileCoverPictureimgBuffer)
+                    .resize(1920, 1080)
+                    .webp({ quality: 75, compressionLevel: 7 })
+                    .toBuffer()
+                    // add new post
+                    .then(data => {
+                        let newImagebase64 = `data:image/webp;base64,${data.toString('base64')}`
+                        body.User.CoverPicture = newImagebase64
+                    })
+                    .catch(err => console.log(`downisze issue ${err}`))
+
+            }
+
             // edit my account
             const user = await Account.findByIdAndUpdate(body.User._id, {
                 $set: body.User
@@ -17,6 +57,8 @@ exports.EditUserAccount = async (req, res) => {
 
 
             if (body.User.UserName !== user.UserName || body.User.FamilyName !== user.FamilyName || body.User.ProfilePicture !== user.ProfilePicture) {
+
+
                 //change my posts owner name and image
                 await Post.updateMany({ PostOwnerId: body.User._id },
                     {
