@@ -8,7 +8,7 @@ exports.FetchNotifications = async (req, res) => {
         if (req.session.UserId) {
 
             const UserNotifications = await AccountSchema.aggregate([
-                { $match: { _id: mongoose.Types.ObjectId(req.body.AccessControlId) } },
+                { $match: { _id: mongoose.Types.ObjectId(req.session.UserId) } },
                 { $unwind: "$Notifications" },
                 { $sort: { "Notifications.updatedAt": -1 } },
                 { $limit: 15 },

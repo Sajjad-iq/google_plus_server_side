@@ -1,12 +1,13 @@
 const CollectionsSchema = require('../Schema/Collection')
 const Account = require('../Schema/Account')
 const Posts = require('../Schema/Post')
+const sharp = require('sharp');
 
-async function AddNewCollection(body) {
+async function AddNewCollection(body, CollectionsImage) {
     const Collection = new CollectionsSchema({
         CollectionTitle: body.CollectionTitle,
         Tagline: body.Tagline,
-        CollectionsCoverPicture: body.CollectionsCoverPicture,
+        CollectionsCoverPicture: CollectionsImage,
         CollectionFollowing: body.CollectionFollowing,
         CollectionOwnerId: body.CollectionOwnerId,
         Color: body.Color,
@@ -20,7 +21,22 @@ exports.AddCollections = async (req, res) => {
     if (req.session.UserId && req.body) {
 
         try {
-            await AddNewCollection(req.body)
+            // convert from base64 
+            let base64Image = req.body.CollectionsCoverPicture.split(';base64,').pop();
+            let imgBuffer = Buffer.from(base64Image, 'base64');
+
+            // resize 
+            sharp(imgBuffer)
+                .resize(1280, 720)
+                .webp({ quality: 75, compressionLevel: 7 })
+                .toBuffer()
+                // add new post
+                .then(data => {
+                    let newImagebase64 = `data:image/webp;base64,${data.toString('base64')}`
+                    AddNewCollection(req.body, newImagebase64)
+                })
+                .catch(err => console.log(`downisze issue ${err}`))
+
             res.status(200).json("done")
         } catch (e) {
             console.log(e)
@@ -108,20 +124,61 @@ exports.EditCollection = async (req, res) => {
     try {
 
         if (body !== undefined && req.session.UserId == body.CollectionOwnerId) {
-            await CollectionsSchema.findByIdAndUpdate(body.CollectionId, {
-                CollectionTitle: body.CollectionTitle,
-                Tagline: body.Tagline,
-                CollectionsCoverPicture: body.CollectionsCoverPicture,
-                Color: body.Color,
-                CollectionOwnerName: body.CollectionOwnerName,
-                CollectionOwnerImage: body.CollectionOwnerImage
-            }).lean()
 
-            await Posts.findOneAndUpdate({ CollectionId: req.body.CollectionId }, {
-                CollectionName: body.CollectionTitle,
-            }).select(["_id", "CollectionName"]).lean(true)
+            if (body.CollectionsCoverPicture !== "") {
+                // convert from base64 
+                let base64Image = body.CollectionsCoverPicture.split(';base64,').pop();
+                let imgBuffer = Buffer.from(base64Image, 'base64');
 
-            res.status(200).json("done")
+                // resize 
+                sharp(imgBuffer)
+                    .resize(1280, 720)
+                    .webp({ quality: 75, compressionLevel: 7 })
+                    .toBuffer()
+                    .then(async (data) => {
+
+                        let newImagebase64 = `data:image/webp;base64,${data.toString('base64')}`
+
+                        await CollectionsSchema.findByIdAndUpdate(body.CollectionId, {
+                            CollectionTitle: body.CollectionTitle,
+                            Tagline: body.Tagline,
+                            CollectionsCoverPicture: newImagebase64,
+                            Color: body.Color,
+                            CollectionOwnerName: body.CollectionOwnerName,
+                            CollectionOwnerImage: body.CollectionOwnerImage
+                        }).lean()
+
+                        await Posts.findOneAndUpdate({ CollectionId: req.body.CollectionId }, {
+                            CollectionName: body.CollectionTitle,
+                        }).select(["_id", "CollectionName"]).lean(true)
+
+                        res.status(200).json("done")
+                    })
+                    .catch(err => {
+                        console.log(`downisze issue ${err}`)
+                        res.status(500).json("")
+                    })
+
+            }
+
+
+            else {
+                await CollectionsSchema.findByIdAndUpdate(body.CollectionId, {
+                    CollectionTitle: body.CollectionTitle,
+                    Tagline: body.Tagline,
+                    CollectionsCoverPicture: body.CollectionsCoverPicture,
+                    Color: body.Color,
+                    CollectionOwnerName: body.CollectionOwnerName,
+                    CollectionOwnerImage: body.CollectionOwnerImage
+                }).lean()
+
+                await Posts.findOneAndUpdate({ CollectionId: req.body.CollectionId }, {
+                    CollectionName: body.CollectionTitle,
+                }).select(["_id", "CollectionName"]).lean(true)
+
+                res.status(200).json("done")
+            }
+
         } else {
             return res.status(405).json("modify error")
         }
