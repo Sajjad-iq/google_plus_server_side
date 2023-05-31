@@ -93,11 +93,13 @@ exports.FetchPostsHandler = async (req, res) => {
             ["_id", "PostBody", "PostOwnerName", "PostOwnerImage", "PostOwnerId", "PostImage", "Link", "CommentsCounter", "createdAt", "Likes", "PostFrom", "CollectionName", "CollectionId", "PrivateShareUsersIds", "CollectionOwnerId"]
         ).lean(true).sort({ createdAt: -1 }).limit(PayloadCount + 10)
 
+
         if (Posts && req.session.UserId) {
 
             const NewPosts = Posts.map((e) => {
                 if (e.PostFrom === "Collections") {
-                    if (req.body.FollowingCollections.includes(e.CollectionId) || e.CollectionOwnerId === req.session.UserId) return e
+                    const FollowingCollectionsArr = req.body.FollowingCollections || [];
+                    if (FollowingCollectionsArr.includes(e.CollectionId) || e.CollectionOwnerId === req.session.UserId) return e
                 } else return e
             })
             res.status(200).json({
