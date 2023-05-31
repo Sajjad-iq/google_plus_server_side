@@ -96,16 +96,25 @@ exports.FetchPostsHandler = async (req, res) => {
 
         if (Posts && req.session.UserId) {
 
-            const NewPosts = Posts.map((e) => {
-                if (e.PostFrom === "Collections") {
-                    const FollowingCollectionsArr = req.body.FollowingCollections || [];
-                    if (FollowingCollectionsArr.includes(e.CollectionId) || e.CollectionOwnerId === req.session.UserId) return e
-                } else return e
-            })
-            res.status(200).json({
-                ResponsePosts: NewPosts.splice(PayloadCount, PayloadCount + 10),
-                StopFetching: Posts.length < PayloadCount ? true : false
-            })
+            if (req.body.forCollectionsPreviewWindow) {
+                res.status(200).json({
+                    ResponsePosts: Posts.splice(PayloadCount, PayloadCount + 10),
+                    StopFetching: Posts.length < PayloadCount ? true : false
+                })
+
+            } else {
+                const NewPosts = Posts.map((e) => {
+                    if (e.PostFrom === "Collections") {
+                        const FollowingCollectionsArr = req.body.FollowingCollections || [];
+                        if (FollowingCollectionsArr.includes(e.CollectionId) | e.CollectionOwnerId === req.session.UserId) return e
+                    } else return e
+                })
+                res.status(200).json({
+                    ResponsePosts: NewPosts.splice(PayloadCount, PayloadCount + 10),
+                    StopFetching: Posts.length < PayloadCount ? true : false
+                })
+
+            }
 
         }
         else { res.status(404).json("Posts not found") }
