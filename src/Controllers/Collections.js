@@ -21,23 +21,29 @@ exports.AddCollections = async (req, res) => {
     if (req.session.UserId && req.body) {
 
         try {
-            // convert from base64 
-            let base64Image = req.body.CollectionsCoverPicture.split(';base64,').pop();
-            let imgBuffer = Buffer.from(base64Image, 'base64');
 
-            // resize 
-            sharp(imgBuffer)
-                .resize(1280, 720)
-                .webp({ quality: 75, compressionLevel: 7 })
-                .toBuffer()
-                // add new post
-                .then(data => {
-                    let newImagebase64 = `data:image/webp;base64,${data.toString('base64')}`
-                    AddNewCollection(req.body, newImagebase64)
-                })
-                .catch(err => console.log(`downisze issue ${err}`))
+            if (req.body.CollectionsCoverPicture !== "") {
+                // convert from base64 
+                let base64Image = req.body.CollectionsCoverPicture.split(';base64,').pop();
+                let imgBuffer = Buffer.from(base64Image, 'base64');
 
-            res.status(200).json("done")
+                // resize 
+                sharp(imgBuffer)
+                    .resize(1280, 720)
+                    .webp({ quality: 75, compressionLevel: 7 })
+                    .toBuffer()
+                    // add new post
+                    .then(data => {
+                        let newImagebase64 = `data:image/webp;base64,${data.toString('base64')}`
+                        AddNewCollection(req.body, newImagebase64)
+                    })
+                    .catch(err => console.log(`downisze issue ${err}`))
+
+                res.status(200).json("done")
+            } else {
+                AddNewCollection(req.body, "")
+                res.status(200).json("done")
+            }
         } catch (e) {
             console.log(e)
             return res.status(500).json("server error")

@@ -26,22 +26,28 @@ exports.AddPostHandler = async (req, res) => {
     try {
         if (req.body !== undefined && req.session.UserId) {
 
-            // convert from base64 
-            let base64Image = req.body.PostImage.split(';base64,').pop();
-            let imgBuffer = Buffer.from(base64Image, 'base64');
-            3
-            // resize 
-            sharp(imgBuffer)
-                .webp({ quality: 75, compressionLevel: 7 })
-                .toBuffer()
-                // add new post
-                .then(data => {
-                    let newImagebase64 = `data:image/webp;base64,${data.toString('base64')}`
-                    AddPost(req.body, newImagebase64)
-                })
-                .catch(err => console.log(`downisze issue ${err}`))
+            if (req.body.PostImage !== "") {
 
-            res.status(200).json("done")
+                // convert from base64 
+                let base64Image = req.body.PostImage.split(';base64,').pop();
+                let imgBuffer = Buffer.from(base64Image, 'base64');
+                3
+                // resize 
+                sharp(imgBuffer)
+                    .webp({ quality: 75, compressionLevel: 7 })
+                    .toBuffer()
+                    // add new post
+                    .then(data => {
+                        let newImagebase64 = `data:image/webp;base64,${data.toString('base64')}`
+                        AddPost(req.body, newImagebase64)
+                    })
+                    .catch(err => console.log(`downisze issue ${err}`))
+
+                res.status(200).json("done")
+            } else {
+                AddPost(req.body, "")
+                res.status(200).json("done")
+            }
         } else {
             return res.status(404).json("post error")
         }
