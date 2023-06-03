@@ -29,10 +29,9 @@ exports.AddPostHandler = async (req, res) => {
             // convert from base64 
             let base64Image = req.body.PostImage.split(';base64,').pop();
             let imgBuffer = Buffer.from(base64Image, 'base64');
-
+            3
             // resize 
             sharp(imgBuffer)
-                .resize(1280, 720)
                 .webp({ quality: 75, compressionLevel: 7 })
                 .toBuffer()
                 // add new post
