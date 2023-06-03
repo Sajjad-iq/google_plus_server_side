@@ -97,7 +97,7 @@ exports.FetchPostsHandler = async (req, res) => {
 
             if (req.body.forCollectionsPreviewWindow) {
                 res.status(200).json({
-                    ResponsePosts: Posts.splice(PayloadCount, PayloadCount + 10),
+                    ResponsePosts: Posts.splice(PayloadCount, PayloadCount + 5),
                     StopFetching: Posts.length < PayloadCount ? true : false
                 })
 
@@ -109,7 +109,7 @@ exports.FetchPostsHandler = async (req, res) => {
                     } else return e
                 })
                 res.status(200).json({
-                    ResponsePosts: NewPosts.splice(PayloadCount, PayloadCount + 10),
+                    ResponsePosts: NewPosts.splice(PayloadCount, PayloadCount + 5),
                     StopFetching: Posts.length < PayloadCount ? true : false
                 })
 
