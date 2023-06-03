@@ -90,7 +90,7 @@ exports.FetchPostsHandler = async (req, res) => {
 
         const Posts = await PostSchema.find(req.body.PostsOwner).select(
             ["_id", "PostBody", "PostOwnerName", "PostOwnerImage", "PostOwnerId", "PostImage", "Link", "CommentsCounter", "createdAt", "Likes", "PostFrom", "CollectionName", "CollectionId", "PrivateShareUsersIds", "CollectionOwnerId"]
-        ).lean(true).sort({ createdAt: -1 }).limit(PayloadCount + 10)
+        ).lean(true).sort({ createdAt: -1 }).limit(PayloadCount + 5)
 
 
         if (Posts && req.session.UserId) {
