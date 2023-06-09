@@ -1,38 +1,5 @@
 const mongoose = require("mongoose");
 
-const CommentRePlay = new mongoose.Schema({
-    CommentRePlayerBody: String,
-    CommentRePlayOwnerName: String,
-    CommentRePlayOwnerId: String,
-    CommentsRePlayLikes: {
-        default: [],
-        type: Array
-    }
-}
-    , { timestamps: true }
-
-)
-
-const Comments = new mongoose.Schema({
-    CommentBody: String,
-    CommentOwnerName: String,
-    CommentOwnerId: String,
-    CommentOwnerImage: {
-        default: "",
-        type: String
-    },
-    CommentsLikes: {
-        default: [],
-        type: Array
-    },
-    CommentsRePlayTo: {
-        default: "",
-        type: String
-    }
-},
-    { timestamps: true }
-
-)
 
 const AddPostSchema = new mongoose.Schema({
     PostBody: {
@@ -67,10 +34,7 @@ const AddPostSchema = new mongoose.Schema({
         type: Number,
         default: 0
     },
-    Comments: {
-        type: [Comments],
-        default: []
-    },
+
     PostFrom: {
         type: String,
         default: ""

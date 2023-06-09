@@ -1,5 +1,6 @@
 const PostSchema = require('../../Schema/Post')
 const sharp = require('sharp');
+const CommentsSchema = require('../../Schema/Comments')
 
 async function AddPost(body, postImage) {
 
@@ -73,7 +74,6 @@ exports.EditPostHandler = async (req, res) => {
                 PostImage: body.PostImage,
                 PostOwnerImage: body.PostOwnerImage,
                 Link: body.link,
-
             }).lean()
 
             res.status(200).json("done")
@@ -94,10 +94,7 @@ exports.FetchPostsHandler = async (req, res) => {
 
         const PayloadCount = req.body.PayloadCount
 
-        const Posts = await PostSchema.find(req.body.PostsOwner).select(
-            ["_id", "PostBody", "PostOwnerName", "PostOwnerImage", "PostOwnerId", "PostImage", "Link", "CommentsCounter", "createdAt", "Likes", "PostFrom", "CollectionName", "CollectionId", "PrivateShareUsersIds", "CollectionOwnerId"]
-        ).lean(true).sort({ createdAt: -1 }).limit(PayloadCount + 5)
-
+        const Posts = await PostSchema.find(req.body.PostsOwner).lean(true).sort({ createdAt: -1 }).limit(PayloadCount + 5)
 
         if (Posts && req.session.UserId) {
 
@@ -137,14 +134,12 @@ exports.FetchCommentsHandler = async (req, res) => {
     try {
 
         const PayloadCount = req.body.PayloadCount
-        const Posts = await PostSchema.findById(req.body.PostId).sort({ createdAt: -1 }).select(
-            ["Comments"]
-        ).lean()
+        const Comments = await CommentsSchema.find({ CommentFromPost: req.body.PostId }).sort({ createdAt: -1 }).lean().limit(PayloadCount + 10)
 
-        if (Posts && req.session.UserId) {
+        if (Comments && req.session.UserId) {
             res.status(200).json({
-                ResponseComments: Posts.Comments.splice(PayloadCount, PayloadCount + 10),
-                StopFetching: Posts.Comments.length < PayloadCount ? true : false
+                ResponseComments: Comments.splice(PayloadCount, PayloadCount + 10),
+                StopFetching: Comments.length < PayloadCount ? true : false
             })
         } else return res.status(404).json("your don't sign in")
 

@@ -1,26 +1,71 @@
 const PostSchema = require('../../Schema/Post')
 const AccountSchema = require('../../Schema/Account')
+const CommentsSchema = require('../../Schema/Comments')
+const sharp = require('sharp');
+
+async function AddComment(body, CommentImage) {
+
+    const Comment = new CommentsSchema({
+        CommentBody: body.Comment.CommentBody,
+        CommentOwnerName: body.Comment.CommentOwnerName,
+        CommentOwnerId: body.Comment.CommentOwnerId,
+        CommentOwnerImage: body.Comment.CommentOwnerImage,
+        CommentImage: CommentImage,
+        CommentsLikes: '0',
+        CommentsRePlayTo: body.Comment.CommentsRePlayTo,
+        CommentFromPost: body.Comment.PostId
+    })
+
+    await PostSchema.findByIdAndUpdate(body.Comment.PostId, {
+        $inc: { CommentsCounter: 1 }
+    }).lean().select(["CommentsCounter"])
+
+    await Comment.save()
+}
 
 exports.AddCommentHandler = async (req, res) => {
 
     const body = req.body
     let LikesPost = null
 
-
     try {
 
         // check the access
         if (req.session.UserId) {
 
-            const targetPost = await PostSchema.findByIdAndUpdate(body.Comment.PostId, {
-                $push: { Comments: body.Comment },
-                $set: { CommentsCounter: body.Comment.CommentsCounter }
-            }).lean()
+
+            if (body.Comment.CommentImage !== "") {
+
+                // convert from base64 
+                let base64Image = body.Comment.CommentImage.split(';base64,').pop();
+                let imgBuffer = Buffer.from(base64Image, 'base64');
+
+                // resize 
+                sharp(imgBuffer)
+                    .webp({ quality: 75, compressionLevel: 7 })
+                    .toBuffer()
+                    // add new comment 
+                    .then(async (data) => {
+                        let newImagebase64 = `data:image/webp;base64,${data.toString('base64')}`
+                        AddComment(body, newImagebase64)
+                    })
+                    .catch(err => console.log(`downisze issue ${err}`))
+            } else {
+                AddComment(body, "")
+            }
+
+
+
+
+
+            /////// notifications part
+
+            let targetPost = await PostSchema.findById(body.Comment.PostId).lean().select(["CommentsCounter"])
 
 
             // if it's normal comment
 
-            if (targetPost.PostOwnerId !== body.Comment.CommentOwnerId && body.Comment.CommentsRePlayTo === "") {
+            if (body.Comment.PostOwnerId !== body.Comment.CommentOwnerId && body.Comment.CommentsRePlayTo === "") {
 
 
                 // get all notifications in this account
@@ -242,8 +287,8 @@ exports.AddCommentHandler = async (req, res) => {
             }
 
 
-            res.status(200).json(targetPost.Comments.length)
-        } else return res.status(404).json("your don't sign in")
+            res.status(200).json(targetPost.CommentsCounter)
+        } else return res.status(404).json("you don't sign in")
     } catch (e) {
         console.log(e)
         return res.status(500).json("server error")
