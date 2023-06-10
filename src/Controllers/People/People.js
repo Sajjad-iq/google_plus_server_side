@@ -1,4 +1,5 @@
 const Account = require('../../Schema/Account')
+const NotificationsSchema = require("../../Schema/Notifications")
 
 
 exports.FindUserHandler = async (req, res) => {
@@ -6,6 +7,13 @@ exports.FindUserHandler = async (req, res) => {
     try {
         const user = await Account.findById(req.body.id).select(["UserName", "FamilyName", "Email", "Password", "ProfilePicture", "CoverPicture", "Description", "Followers", "Following", " IsAdmin", "FollowingCollections"]).lean();
 
+        if (req.body.setNotificationAsRead) {
+            await NotificationsSchema.updateOne({
+                NotificationByAccount: req.body.NotificationsData.NotificationByAccount,
+                NotificationOnClickTargetId: req.body.NotificationsData.NotificationOnClickTargetId
+            }, { $set: { Read: true } }
+            )
+        }
         if (user && req.session.UserId) res.status(200).json(user)
         else res.status(404).json("user not found")
     } catch (e) {

@@ -1,6 +1,5 @@
 const Account = require('../../Schema/Account')
-
-
+const NotificationsSchema = require("../../Schema/Notifications")
 
 exports.AddFollowersHandler = async (req, res) => {
 
@@ -10,108 +9,78 @@ exports.AddFollowersHandler = async (req, res) => {
         // if it's  UnFollow operation
         if (body.operation === "remove") {
 
-            // remove user id in the target user object 
-            const User = await Account.findByIdAndUpdate(body.FindUserId, {
-                $pull: { Followers: body.OwnerId }
-            }).select(["_id", "UserName", "FamilyName", "Email", "Password", "ProfilePicture", "CoverPicture", "Description", "Followers", "Following", " IsAdmin"]).lean()
-
-            // remove in my account
-            await Account.findByIdAndUpdate(body.OwnerId, {
-                $pull: {
-                    Following: {
-                        FollowingName: `${User.UserName} ${User.FamilyName}`,
-                        FollowingId: body.FindUserId,
-                        FollowingImage: User.ProfilePicture
-                    }
-                }
-            }).select(["UserName", "FamilyName", "Email", "Password", "ProfilePicture", "CoverPicture", "Description", "Followers", "Following", " IsAdmin"]).lean()
+            await Promise.all([
+                Account.updateOne({ _id: body.FindUserId }, { $pull: { Followers: body.OwnerId } }).select(["_id"]).lean()
+                ,
+                Account.updateOne({ _id: body.OwnerId }, { $pull: { Following: body.FindUserId } }).select(["_id"]).lean()
+            ])
             res.status(200).json(-1)
         }
-
-
-
 
 
         // if it's add follow operation
         else {
 
-            //add and get all notifications in target user account
-            const User = await Account.findByIdAndUpdate(body.FindUserId, {
-                $addToSet: {
-                    Followers: body.OwnerId,
-                }
-            }).select(["Notifications", "UserName", "FamilyName", "ProfilePicture"]).lean(true)
-
-            //update my account
-            await Account.findByIdAndUpdate(req.body.OwnerId, {
-                $addToSet: {
-                    Following: {
-                        FollowingName: `${User.UserName} ${User.FamilyName}`,
-                        FollowingId: req.body.FindUserId,
-                        FollowingImage: User.ProfilePicture
-                    }
-                }
-            }).select(["UserName"]).lean(true)
+            await Promise.all([
+                Account.updateOne({ _id: body.FindUserId }, { $addToSet: { Followers: body.OwnerId } }).select(["_id"]).lean()
+                ,
+                Account.updateOne({ _id: req.body.OwnerId }, { $addToSet: { Following: req.body.FindUserId } }).select(["_Id"]).lean()
+            ])
 
 
-            // filter them by 
-            const SpecificNotificationsPost = User.Notifications.filter((e) => {
-                return e.NotificationOration == "follow" && e.NotificationToId == body.FindUserId
-            })
+
+            //// Add notifications part
+
+            const NotificationsArr = await NotificationsSchema.find({ NotificationByAccount: body.FindUserId, NotificationOration: "follow" })
 
             // if SpecificNotificationsPost empty  ?
-            if (SpecificNotificationsPost.length <= 0) {
-                await Account.findByIdAndUpdate(body.FindUserId, {
-                    $addToSet: {
-                        Notifications: {
-                            NotificationName: `${body.UserName} ${body.FamilyName}`,
-                            NotificationBody: `Started Following You`,
-                            NotificationFromId: body.OwnerId,
-                            NotificationToId: body.FindUserId,
-                            NotificationFrom: "people",
-                            NotificationOration: "follow",
-                            NotificationOwnerImage: body.OwnerImage,
-                            NotificationUsersIds: body.OwnerId
-                        }
-                    }
+
+            if (NotificationsArr.length <= 0) {
+                const NewNotification = new NotificationsSchema({
+                    NotificationName: [`${body.UserName} ${body.FamilyName}`],
+                    NotificationBody: `Started Following You`,
+                    NotificationOnClickTargetId: body.OwnerId,
+                    NotificationFrom: "people",
+                    NotificationOration: "follow",
+                    NotificationUsersIncludedImages: [body.OwnerImage],
+                    NotificationUsersIncludedIds: [body.OwnerId],
+                    NotificationByAccount: body.FindUserId
+                    , Read: false
                 })
+                await NewNotification.save()
             }
 
-
-
             // if SpecificNotificationsPost isn't empty ?
-            else if (SpecificNotificationsPost.length > 0) {
+            else if (NotificationsArr.length > 0) {
 
+                const TargetNotification = NotificationsArr[0]
                 // clean the notification object
-                SpecificNotificationsPost[0].NotificationOwnerImage = SpecificNotificationsPost[0].NotificationOwnerImage.slice(0, 3)
-                SpecificNotificationsPost[0].NotificationName = SpecificNotificationsPost[0].NotificationName.slice(0, 8)
+                TargetNotification.NotificationUsersIncludedImages = TargetNotification.NotificationUsersIncludedImages.slice(0, 4)
+                TargetNotification.NotificationName = TargetNotification.NotificationName.slice(0, 8)
 
                 // if the user don't add comments before in this post
-                if (!SpecificNotificationsPost[0].NotificationUsersIds.includes(body.OwnerId)) {
-                    SpecificNotificationsPost[0].NotificationOwnerImage.unshift(body.OwnerImage)
-                    SpecificNotificationsPost[0].NotificationUsersIds.push(body.OwnerId)
-                    SpecificNotificationsPost[0].NotificationName.unshift(body.UserName)
+                if (!TargetNotification.NotificationUsersIncludedIds.includes(body.OwnerId)) {
+                    TargetNotification.NotificationUsersIncludedImages.unshift(body.OwnerImage)
+                    TargetNotification.NotificationUsersIncludedIds.push(body.OwnerId)
+                    TargetNotification.NotificationName.unshift(body.UserName)
                 }
 
 
-                await Account.updateOne({ _id: body.FindUserId }, {
+                await NotificationsSchema.updateOne({ NotificationByAccount: body.FindUserId, NotificationOration: "follow" }, {
                     $set: {
-                        "Notifications.$[el].NotificationName": SpecificNotificationsPost[0].NotificationName,
-                        "Notifications.$[el].NotificationOwnerImage": SpecificNotificationsPost[0].NotificationOwnerImage !== "" ? SpecificNotificationsPost[0].NotificationOwnerImage : "",
-                        "Notifications.$[el].NotificationBody": `Added you to their circles`,
-                        "Notifications.$[el].NotificationFromId": body.OwnerId,
-                        "Notifications.$[el].NotificationToId": body.FindUserId,
-                        "Notifications.$[el].NotificationOration": "follow",
-                        "Notifications.$[el].NotificationFrom": 'people',
-                        "Notifications.$[el].NotificationUsersIds": SpecificNotificationsPost[0].NotificationUsersIds
+                        NotificationName: TargetNotification.NotificationName,
+                        NotificationUsersIncludedImages: TargetNotification.NotificationUsersIncludedImages,
+                        NotificationBody: `Added you to their circles`,
+                        NotificationOnClickTargetId: body.OwnerId,
+                        NotificationByUserAccount: body.FindUserId,
+                        NotificationOration: "follow",
+                        NotificationFrom: 'people',
+                        NotificationUsersIncludedIds: TargetNotification.NotificationUsersIncludedIds,
+                        Read: false
                     }
-                },
-                    { arrayFilters: [{ "el.NotificationToId": body.FindUserId, "el.NotificationOration": "follow" }] }
+                }
                 )
             }
-
-
-
 
             res.status(200).json(1)
         }

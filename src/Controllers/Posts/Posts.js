@@ -1,6 +1,7 @@
 const PostSchema = require('../../Schema/Post')
 const sharp = require('sharp');
 const CommentsSchema = require('../../Schema/Comments')
+const NotificationsSchema = require("../../Schema/Notifications")
 
 async function AddPost(body, postImage) {
 
@@ -66,19 +67,45 @@ exports.EditPostHandler = async (req, res) => {
 
     try {
 
-        if (body !== undefined && req.session.UserId == body.PostOwnerId) {
-            await PostSchema.findByIdAndUpdate(body.PostId, {
-                PostBody: body.PostBody,
-                PostOwnerId: body.PostOwnerId,
-                PostOwnerName: body.PostOwnerName,
-                PostImage: body.PostImage,
-                PostOwnerImage: body.PostOwnerImage,
-                Link: body.link,
-            }).lean()
+        if (body.PostImage !== "") {
+
+            // convert from base64 
+            let base64Image = body.PostImage.split(';base64,').pop();
+            let imgBuffer = Buffer.from(base64Image, 'base64');
+            3
+            // resize 
+            sharp(imgBuffer)
+                .webp({ quality: 75, compressionLevel: 7 })
+                .toBuffer()
+                // add new post
+                .then(async (data) => {
+                    let newImagebase64 = `data:image/webp;base64,${data.toString('base64')}`
+
+                    await PostSchema.findByIdAndUpdate(body.PostId, {
+                        PostBody: body.PostBody,
+                        PostOwnerId: body.PostOwnerId,
+                        PostOwnerName: body.PostOwnerName,
+                        PostImage: newImagebase64,
+                        PostOwnerImage: body.PostOwnerImage,
+                        Link: body.link,
+                    }).lean()
+                })
+                .catch(err => console.log(`downisze issue ${err}`))
 
             res.status(200).json("done")
         } else {
-            return res.status(404).json("post error")
+            if (body !== undefined && req.session.UserId == body.PostOwnerId) {
+                await PostSchema.findByIdAndUpdate(body.PostId, {
+                    PostBody: body.PostBody,
+                    PostOwnerId: body.PostOwnerId,
+                    PostOwnerName: body.PostOwnerName,
+                    PostImage: body.PostImage,
+                    PostOwnerImage: body.PostOwnerImage,
+                    Link: body.link,
+                }).lean()
+
+                res.status(200).json("done")
+            } else return res.status(404).json("post error")
         }
     } catch (e) {
         console.log(e)
@@ -134,7 +161,7 @@ exports.FetchCommentsHandler = async (req, res) => {
     try {
 
         const PayloadCount = req.body.PayloadCount
-        const Comments = await CommentsSchema.find({ CommentFromPost: req.body.PostId }).sort({ createdAt: -1 }).lean().limit(PayloadCount + 10)
+        const Comments = await CommentsSchema.find({ CommentFromPost: req.body.PostId }).lean().limit(PayloadCount + 10)
 
         if (Comments && req.session.UserId) {
             res.status(200).json({
@@ -155,9 +182,16 @@ exports.FetchSpecificPostHandler = async (req, res) => {
 
 
     try {
-        const Post = await PostSchema.findById(req.body.PostId).select(
-            ["_id", "PostBody", "PostOwnerName", "PostOwnerImage", "PostOwnerId", "PostImage", "Link", "CommentsCounter", "createdAt", "Likes", "PostFrom", "CollectionName", " CollectionId", "PrivateShareUsersIds"]
-        ).lean()
+
+        const Post = await PostSchema.findById(req.body.PostId).lean()
+
+        if (req.body.setNotificationAsRead) {
+            await NotificationsSchema.updateOne({
+                NotificationByAccount: req.body.NotificationsData.NotificationByAccount,
+                NotificationOnClickTargetId: req.body.NotificationsData.NotificationOnClickTargetId
+            }, { $set: { Read: true } }
+            )
+        }
 
         if (Post && req.session.UserId) {
             res.status(200).json(Post)
@@ -194,11 +228,14 @@ exports.DeletePostHandler = async (req, res) => {
 exports.DeleteCommentsHandler = async (req, res) => {
 
     try {
-        if (req.body.Comment.CommentOwnerId == req.session.UserId) {
+        if (req.body.CommentOwnerId == req.session.UserId) {
+
+            await CommentsSchema.findByIdAndDelete(req.body.CommentId)
+
             await PostSchema.findByIdAndUpdate(req.body.PostId, {
-                $pull: { Comments: req.body.Comment },
-                $set: { CommentsCounter: req.body.CommentsCounter }
-            })
+                $inc: { CommentsCounter: -1 }
+            }).lean().select(["CommentsCounter"])
+
             res.status(200).json("done")
         } else {
             res.status(404).json("you can't delete this comment")
@@ -213,19 +250,62 @@ exports.DeleteCommentsHandler = async (req, res) => {
 
 exports.EditCommentHandler = async (req, res) => {
 
-
+    const body = req.body
     try {
 
-        if (req.body.comment.CommentOwnerId === req.session.UserId) {
-            await PostSchema.updateMany({ "_id": req.body.postId }, {
-                $set: {
-                    "Comments.$[el].CommentBody": req.body.commentBody
-                }
-            },
-                { arrayFilters: [{ "el._id": req.body.comment._id }] }
+        if (body.comment.CommentOwnerId === req.session.UserId) {
 
-            );
-            res.status(200).json("done")
+
+
+            if (body.comment.CommentImage !== "") {
+
+                // convert from base64 
+                let base64Image = body.comment.CommentImage.split(';base64,').pop();
+                let imgBuffer = Buffer.from(base64Image, 'base64');
+                3
+                // resize 
+                sharp(imgBuffer)
+                    .webp({ quality: 75, compressionLevel: 7 })
+                    .toBuffer()
+                    // add new post
+                    .then(async (data) => {
+                        let newImagebase64 = `data:image/webp;base64,${data.toString('base64')}`
+
+                        await CommentsSchema.findByIdAndUpdate(req.body.comment._id, {
+                            $set: {
+                                CommentBody: body.commentBody,
+                                CommentOwnerName: body.comment.CommentOwnerName,
+                                CommentOwnerId: body.comment.CommentOwnerId,
+                                CommentOwnerImage: body.comment.CommentOwnerImage,
+                                CommentImage: newImagebase64,
+                                CommentsLikes: '0',
+                                CommentsRePlayTo: body.comment.CommentsRePlayTo,
+                                CommentFromPost: body.comment.PostId
+                            }
+                        })
+
+                        res.status(200).json("done")
+                    })
+                    .catch(err => console.log(`downisze issue ${err}`))
+
+                res.status(200).json("done")
+            }
+            else {
+                await CommentsSchema.findByIdAndUpdate(req.body.comment._id, {
+                    $set: {
+                        CommentBody: body.commentBody,
+                        CommentOwnerName: body.comment.CommentOwnerName,
+                        CommentOwnerId: body.comment.CommentOwnerId,
+                        CommentOwnerImage: body.comment.CommentOwnerImage,
+                        CommentImage: body.comment.CommentImage,
+                        CommentsLikes: '0',
+                        CommentsRePlayTo: body.comment.CommentsRePlayTo,
+                        CommentFromPost: body.comment.PostId
+                    }
+                })
+
+                res.status(200).json("done")
+            }
 
         } else {
             return res.status(404).json("you can't update this comment")
