@@ -49,8 +49,8 @@ exports.AddLikeHandler = async (req, res) => {
 
                 // find the notification object for this post if its exist
                 const NotificationsFilter = NotificationsArr.filter((e) => {
-                    if (e.NotificationOration == "like") CommentsPost = e
-                    return e.NotificationOration == "comment"
+                    if (e.NotificationOration == "comment") CommentsPost = e
+                    return e.NotificationOration == "like"
                 })
 
 
@@ -136,7 +136,7 @@ exports.AddLikeHandler = async (req, res) => {
                     await NotificationsSchema.updateOne({
                         NotificationByAccount: body.PostOwnerId,
                         NotificationOnClickTargetId: body.PostId,
-                        NotificationOration: "comment"
+                        NotificationOration: "like"
                     }, {
                         $set: {
                             NotificationName: TargetNotification.NotificationName,
