@@ -8,7 +8,7 @@ exports.FetchNotifications = async (req, res) => {
 
         if (req.session.UserId) {
 
-            const UserNotifications = await NotificationsSchema.find({ NotificationByAccount: req.session.UserId })
+            const UserNotifications = await NotificationsSchema.find({ NotificationByAccount: req.session.UserId }).lean(true).sort({ createdAt: -1 }).limit(10)
             res.status(200).json(UserNotifications)
         } else return res.status(404).json("your don't sign in")
 

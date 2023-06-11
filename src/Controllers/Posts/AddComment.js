@@ -60,7 +60,7 @@ exports.AddCommentHandler = async (req, res) => {
 
             // get all notifications in this account
             const NotificationsArr = await NotificationsSchema.find({
-                NotificationByAccount: body.Comment.PostOwnerId,
+                NotificationByAccount: body.Comment.CommentsRePlayToId !== "" ? body.Comment.CommentsRePlayToId : body.Comment.PostOwnerId,
                 NotificationOnClickTargetId: body.Comment.PostId
             })
 
@@ -74,7 +74,7 @@ exports.AddCommentHandler = async (req, res) => {
 
             // if it's normal comment
 
-            if (body.Comment.PostOwnerId !== body.Comment.CommentOwnerId) {
+            if (body.Comment.PostOwnerId !== body.Comment.CommentOwnerId || body.Comment.CommentsRePlayToId !== "") {
 
                 // if the notification object for this post did not exist  ?
                 if (NotificationsFilter.length <= 0) {
@@ -89,7 +89,7 @@ exports.AddCommentHandler = async (req, res) => {
                             NotificationOration: "comment",
                             NotificationUsersIncludedImages: [body.Comment.CommentOwnerImage],
                             NotificationUsersIncludedIds: [body.Comment.CommentOwnerId],
-                            NotificationByAccount: body.Comment.PostOwnerId
+                            NotificationByAccount: body.Comment.CommentsRePlayToId !== "" ? body.Comment.CommentsRePlayToId : body.Comment.PostOwnerId
                             , Read: false
 
                         })
@@ -113,7 +113,7 @@ exports.AddCommentHandler = async (req, res) => {
 
                         // start to modify likes object for this post to be comments object
                         await NotificationsSchema.updateOne({
-                            NotificationByAccount: body.Comment.PostOwnerId,
+                            NotificationByAccount: body.Comment.CommentsRePlayToId !== "" ? body.Comment.CommentsRePlayToId : body.Comment.PostOwnerId,
                             NotificationOnClickTargetId: body.Comment.PostId,
                             NotificationOration: "like"
                         }, {
@@ -122,7 +122,7 @@ exports.AddCommentHandler = async (req, res) => {
                                 NotificationUsersIncludedImages: LikesPost.NotificationUsersIncludedImages,
                                 NotificationBody: body.Comment.CommentsRePlayToId == "" ? `Comments,+1 on: ${body.Data.PostBody}` : `Mentioned you on,+1 on: ${body.Data.PostBody}`,
                                 NotificationOnClickTargetId: body.Comment.PostId,
-                                NotificationByUserAccount: body.Comment.PostOwnerId,
+                                NotificationByAccount: body.Comment.CommentsRePlayToId !== "" ? body.Comment.CommentsRePlayToId : body.Comment.PostOwnerId,
                                 NotificationOration: "comment",
                                 NotificationFrom: 'posts',
                                 NotificationUsersIncludedIds: LikesPost.NotificationUsersIncludedIds
@@ -157,7 +157,7 @@ exports.AddCommentHandler = async (req, res) => {
                     // start to update comments object for this post 
 
                     await NotificationsSchema.updateOne({
-                        NotificationByAccount: body.Comment.PostOwnerId,
+                        NotificationByAccount: body.Comment.CommentsRePlayToId !== "" ? body.Comment.CommentsRePlayToId : body.Comment.PostOwnerId,
                         NotificationOnClickTargetId: body.Comment.PostId,
                         NotificationOration: "comment"
                     }, {
@@ -166,7 +166,7 @@ exports.AddCommentHandler = async (req, res) => {
                             NotificationUsersIncludedImages: TargetNotification.NotificationUsersIncludedImages,
                             NotificationBody: body.Comment.CommentsRePlayToId == "" ? LikesPost ? `Comments, +1 on:${body.Data.PostBody}` : `Comments on:${body.Data.PostBody}` : LikesPost ? `Mentioned you on, +1 on:${body.Data.PostBody}` : `Mentioned you on:${body.Data.PostBody}`,
                             NotificationOnClickTargetId: body.Comment.PostId,
-                            NotificationByUserAccount: body.Comment.PostOwnerId,
+                            NotificationByUserAccount: body.Comment.CommentsRePlayToId !== "" ? body.Comment.CommentsRePlayToId : body.Comment.PostOwnerId,
                             NotificationOration: "comment",
                             NotificationFrom: 'posts',
                             NotificationUsersIncludedIds: TargetNotification.NotificationUsersIncludedIds
@@ -178,7 +178,7 @@ exports.AddCommentHandler = async (req, res) => {
                     // delete likes object for this post 
                     if (LikesPost) {
                         await NotificationsSchema.findOneAndDelete({
-                            NotificationByAccount: body.Comment.PostOwnerId,
+                            NotificationByAccount: body.Comment.CommentsRePlayToId !== "" ? body.Comment.CommentsRePlayToId : body.Comment.PostOwnerId,
                             NotificationOnClickTargetId: body.Comment.PostId,
                             NotificationOration: "like"
                         })

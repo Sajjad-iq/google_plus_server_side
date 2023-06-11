@@ -67,8 +67,8 @@ exports.AddLikeHandler = async (req, res) => {
                             NotificationOration: "like",
                             NotificationUsersIncludedImages: [body.NotificationOwnerImage],
                             NotificationUsersIncludedIds: [body.UserId],
-                            NotificationByAccount: body.PostOwnerId
-                            , Read: false
+                            NotificationByAccount: body.PostOwnerId,
+                            Read: false
 
                         })
                         await NewNotification.save()
@@ -146,9 +146,8 @@ exports.AddLikeHandler = async (req, res) => {
                             NotificationByUserAccount: body.PostOwnerId,
                             NotificationOration: "like",
                             NotificationFrom: 'posts',
-                            NotificationUsersIncludedIds: TargetNotification.NotificationUsersIncludedIds
-                            , Read: false
-
+                            NotificationUsersIncludedIds: TargetNotification.NotificationUsersIncludedIds,
+                            Read: false
                         }
                     }
                     )

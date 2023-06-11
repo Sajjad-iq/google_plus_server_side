@@ -40,8 +40,13 @@ const Notifications = new mongoose.Schema({
         type: Boolean,
         default: false
     },
-},
-    { timestamps: true }
+    createdAt: {
+        type: Date,
+    },
+    createdAt: { type: Date, expires: 1000 * 60 * 60 * 24, default: Date.now },
+
+
+}
 
 )
 
