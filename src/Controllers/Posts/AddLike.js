@@ -101,7 +101,7 @@ exports.AddLikeHandler = async (req, res) => {
                                 NotificationUsersIncludedImages: CommentsPost.NotificationUsersIncludedImages,
                                 NotificationBody: `+1, Comments on: ${body.PostBody}`,
                                 NotificationOnClickTargetId: body.PostId,
-                                NotificationByUserAccount: body.PostOwnerId,
+                                NotificationByAccount: body.PostOwnerId,
                                 NotificationOration: "like",
                                 NotificationFrom: 'posts',
                                 NotificationUsersIncludedIds: CommentsPost.NotificationUsersIncludedIds
@@ -143,7 +143,7 @@ exports.AddLikeHandler = async (req, res) => {
                             NotificationUsersIncludedImages: TargetNotification.NotificationUsersIncludedImages,
                             NotificationBody: CommentsPost ? `+1, Comments on:${body.PostBody}` : `+1 :${body.PostBody}`,
                             NotificationOnClickTargetId: body.PostId,
-                            NotificationByUserAccount: body.PostOwnerId,
+                            NotificationByAccount: body.PostOwnerId,
                             NotificationOration: "like",
                             NotificationFrom: 'posts',
                             NotificationUsersIncludedIds: TargetNotification.NotificationUsersIncludedIds,

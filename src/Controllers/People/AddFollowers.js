@@ -72,7 +72,7 @@ exports.AddFollowersHandler = async (req, res) => {
                         NotificationUsersIncludedImages: TargetNotification.NotificationUsersIncludedImages,
                         NotificationBody: `Added you to their circles`,
                         NotificationOnClickTargetId: body.OwnerId,
-                        NotificationByUserAccount: body.FindUserId,
+                        NotificationByAccount: body.FindUserId,
                         NotificationOration: "follow",
                         NotificationFrom: 'people',
                         NotificationUsersIncludedIds: TargetNotification.NotificationUsersIncludedIds,

@@ -166,7 +166,7 @@ exports.AddCommentHandler = async (req, res) => {
                             NotificationUsersIncludedImages: TargetNotification.NotificationUsersIncludedImages,
                             NotificationBody: body.Comment.CommentsRePlayToId == "" ? LikesPost ? `Comments, +1 on:${body.Data.PostBody}` : `Comments on:${body.Data.PostBody}` : LikesPost ? `Mentioned you on, +1 on:${body.Data.PostBody}` : `Mentioned you on:${body.Data.PostBody}`,
                             NotificationOnClickTargetId: body.Comment.PostId,
-                            NotificationByUserAccount: body.Comment.CommentsRePlayToId !== "" ? body.Comment.CommentsRePlayToId : body.Comment.PostOwnerId,
+                            NotificationByAccount: body.Comment.CommentsRePlayToId !== "" ? body.Comment.CommentsRePlayToId : body.Comment.PostOwnerId,
                             NotificationOration: "comment",
                             NotificationFrom: 'posts',
                             NotificationUsersIncludedIds: TargetNotification.NotificationUsersIncludedIds
