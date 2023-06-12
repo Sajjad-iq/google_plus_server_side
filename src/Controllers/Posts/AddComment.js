@@ -43,7 +43,7 @@ exports.AddCommentHandler = async (req, res) => {
 
                 // resize 
                 sharp(imgBuffer)
-                    .webp({ quality: 75, compressionLevel: 7 })
+                    .webp({ quality: 65, compressionLevel: 7 })
                     .toBuffer()
                     // add new comment 
                     .then(async (data) => {
