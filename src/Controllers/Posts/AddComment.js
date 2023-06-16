@@ -1,6 +1,8 @@
 const PostSchema = require('../../Schema/Post')
 const CommentsSchema = require('../../Schema/Comments')
 const NotificationsSchema = require("../../Schema/Notifications")
+const Account = require("../../Schema/Account")
+const { MongoClient } = require("mongodb/lib/mongo_client")
 
 const sharp = require('sharp');
 
@@ -196,6 +198,27 @@ exports.AddCommentHandler = async (req, res) => {
 }
 
 
+
+
+exports.MentionHandler = async (req, res) => {
+
+
+    try {
+        if (req.session.UserId) {
+            const accounts = await Account.find({ $text: { $search: req.body.mention } })
+            if (accounts) {
+                res.status(200).json(accounts)
+            }
+            else res.status(400).json([])
+
+        } else return res.status(404).json("your don't sign in")
+
+    } catch (e) {
+        console.log(e)
+        return res.status(500).json("server error")
+    }
+
+}
 
 
 

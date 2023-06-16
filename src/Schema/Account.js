@@ -5,11 +5,13 @@ const AccountSchema = new mongoose.Schema({
         type: String,
         required: true,
         min: 3,
-        max: 10
+        max: 10,
+        unique: true
     },
     FamilyName: {
         type: String,
-        required: true
+        required: true,
+        unique: true
     },
     Email: {
         type: String,
@@ -40,10 +42,7 @@ const AccountSchema = new mongoose.Schema({
         type: Array,
         default: []
     },
-    IsAdmin: {
-        type: Boolean,
-        default: false
-    },
+
     FollowingCollections: {
         type: Array,
         default: []
@@ -52,4 +51,5 @@ const AccountSchema = new mongoose.Schema({
     { timestamps: true }
 )
 
-module.exports = mongoose.model("Account", AccountSchema)
+AccountSchema.indexes({ 'UserName': 'text', 'FamilyName': 'text' })
+module.exports = mongoose.model("accounts", AccountSchema)
