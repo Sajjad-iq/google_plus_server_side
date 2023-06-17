@@ -4,7 +4,7 @@ exports.SearchFindUserHandler = async (req, res) => {
 
     let usersArr = []
     try {
-        const users = await Account.find();
+        const users = await Account.find().select(["UserName", "FamilyName", "Email", "Password", "ProfilePicture", "CoverPicture", "Description", "Followers", "Following", " IsAdmin"]).lean();
         if (users) {
             users.map((e) => {
                 if (e.UserName == req.body.search_word) {

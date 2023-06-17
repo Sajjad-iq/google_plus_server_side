@@ -1,5 +1,6 @@
 const Account = require('../Schema/Account')
 const Joi = require("joi")
+const bcrypt = require("bcrypt")
 
 
 exports.AddNewAccount = async (req, res) => {
@@ -9,24 +10,28 @@ exports.AddNewAccount = async (req, res) => {
         UserName: Joi.string().min(1).max(10).required(),
         FamilyName: Joi.string().min(1).max(10).required(),
         Email: Joi.string().email().required(),
-        Password: Joi.string().min(4).max(15).required()
+        Password: Joi.string().min(4).max(25).required()
     })
 
 
     try {
-        const allAccounts = await Account.findOne({ Email: req.body.Email });
+        const allAccounts = await Account.findOne({ Email: req.body.Email }).select(["UserName", "FamilyName", "Email", "Password", "ProfilePicture", "CoverPicture", "Description", "Followers", "Following", " IsAdmin"]).lean();
         const { error, value } = signUpSchema.validate(body)
 
         if (!allAccounts) {
             if (error) {
                 return res.status(404).json(error.message)
             } else {
+
+
+
                 const account = new Account({
                     UserName: body.UserName,
                     FamilyName: body.FamilyName,
                     Email: body.Email,
-                    Password: body.Password
+                    Password: await bcrypt.hash(body.Password, 10)
                 })
+
                 await account.save()
                 res.status(200).json("account is declared")
             }

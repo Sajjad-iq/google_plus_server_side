@@ -1,42 +1,19 @@
 const mongoose = require("mongoose");
 
-const NotificationsSchema = new mongoose.Schema({
-
-    NotificationName: {
-        type: String,
-        default: ""
-    },
-    NotificationBody: {
-        type: String,
-        default: ""
-    },
-    NotificationFromId: {
-        type: String,
-        default: ""
-    },
-    NotificationFrom: {
-        type: String,
-        default: ""
-    },
-    NotificationOwnerImage: {
-        default: "",
-        type: String
-    },
-},
-    { timestamps: true }
-
-)
-
 const AccountSchema = new mongoose.Schema({
     UserName: {
         type: String,
         required: true,
         min: 3,
-        max: 10
+        max: 10,
+        unique: true,
+        index: true
     },
     FamilyName: {
         type: String,
-        required: true
+        required: true,
+        unique: true,
+        index: true
     },
     Email: {
         type: String,
@@ -63,16 +40,19 @@ const AccountSchema = new mongoose.Schema({
         type: Array,
         default: []
     },
-    IsAdmin: {
-        type: Boolean,
-        default: false
-    },
-    Notifications: {
-        type: [NotificationsSchema],
+    Following: {
+        type: Array,
         default: []
     },
+
+    FollowingCollections: {
+        type: Array,
+        default: []
+    }
 },
     { timestamps: true }
 )
 
-module.exports = mongoose.model("Account", AccountSchema)
+AccountSchema.index({ 'UserName': "text", 'FamilyName': "text" })
+
+module.exports = mongoose.model("accounts", AccountSchema)

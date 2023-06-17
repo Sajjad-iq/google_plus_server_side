@@ -1,20 +1,21 @@
 const AccountSchema = require('../Schema/Account')
+const mongoose = require("mongoose")
+const NotificationsSchema = require("../Schema/Notifications")
 
 exports.FetchNotifications = async (req, res) => {
-    const newArr = []
+
     try {
-        const UserNotifications = await AccountSchema.findById(req.params.id).select(
-            ["Notifications"]
-        ).lean()
 
-        let NotificationsArr = UserNotifications.Notifications
-        for (let i = NotificationsArr.length - 1; i > NotificationsArr.length - 14; i--) {
-            if (NotificationsArr[i]) newArr.push(NotificationsArr[i])
-        }
+        if (req.session.UserId) {
 
-        res.status(200).json(newArr)
+            const UserNotifications = await NotificationsSchema.find({ NotificationByAccount: req.session.UserId }).lean(true).sort({ createdAt: -1 }).limit(10)
+            res.status(200).json(UserNotifications)
+        } else return res.status(404).json("your don't sign in")
+
     } catch (e) {
+        console.log(e)
         return res.status(500).json("server error")
     }
 }
+
 
