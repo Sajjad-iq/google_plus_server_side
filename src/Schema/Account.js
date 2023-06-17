@@ -6,12 +6,14 @@ const AccountSchema = new mongoose.Schema({
         required: true,
         min: 3,
         max: 10,
-        unique: true
+        unique: true,
+        index: true
     },
     FamilyName: {
         type: String,
         required: true,
-        unique: true
+        unique: true,
+        index: true
     },
     Email: {
         type: String,
@@ -51,5 +53,6 @@ const AccountSchema = new mongoose.Schema({
     { timestamps: true }
 )
 
-AccountSchema.indexes({ 'UserName': 'text', 'FamilyName': 'text' })
+AccountSchema.index({ 'UserName': "text", 'FamilyName': "text" })
+
 module.exports = mongoose.model("accounts", AccountSchema)

@@ -2,7 +2,6 @@ const PostSchema = require('../../Schema/Post')
 const CommentsSchema = require('../../Schema/Comments')
 const NotificationsSchema = require("../../Schema/Notifications")
 const Account = require("../../Schema/Account")
-const { MongoClient } = require("mongodb/lib/mongo_client")
 
 const sharp = require('sharp');
 
@@ -205,11 +204,14 @@ exports.MentionHandler = async (req, res) => {
 
     try {
         if (req.session.UserId) {
-            const accounts = await Account.find({ $text: { $search: req.body.mention } })
+
+            let searchWord = await req.body.mention.split("+").join("")
+            const accounts = await Account.find({ $text: { $search: searchWord } })
+                .limit(5).select(["UserName", "FamilyName", "ProfilePicture"]).lean()
             if (accounts) {
                 res.status(200).json(accounts)
             }
-            else res.status(400).json([])
+            else res.status(200).json([])
 
         } else return res.status(404).json("your don't sign in")
 
