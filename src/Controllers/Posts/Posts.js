@@ -130,7 +130,7 @@ exports.FetchPostsHandler = async (req, res) => {
                 })
 
             } else {
-                const NewPosts = Posts.filter((e) => {
+                const NewPosts = Posts.map((e) => {
                     const FollowingCollectionsArr = req.body.FollowingCollections || [];
                     const IsInBlackListForMe = req.body.BlackList.includes(e.PostOwnerId)
                     const IsInBlackListForOthers = req.body.BlockedFrom.includes(e.PostOwnerId)
@@ -166,7 +166,7 @@ exports.FetchCommentsHandler = async (req, res) => {
             const PayloadCount = req.body.PayloadCount
             const Comments = await CommentsSchema.find({ CommentFromPost: req.body.PostId }).lean().limit(PayloadCount + 10)
 
-            const FilteredComments = Comments.filter((e) => {
+            const FilteredComments = Comments.map((e) => {
                 const IsInBlackListForMe = req.body.BlackList.includes(e.CommentOwnerId)
                 const IsInBlackListForOthers = req.body.BlockedFrom.includes(e.CommentOwnerId)
                 if (!IsInBlackListForMe && !IsInBlackListForOthers) return e
