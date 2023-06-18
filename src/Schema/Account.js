@@ -44,8 +44,11 @@ const AccountSchema = new mongoose.Schema({
         type: Array,
         default: []
     },
-
     FollowingCollections: {
+        type: Array,
+        default: []
+    },
+    BlockedAccounts: {
         type: Array,
         default: []
     }

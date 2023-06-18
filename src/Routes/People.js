@@ -6,5 +6,5 @@ const AddFollowController = require("../Controllers/People/AddFollowers")
 router.post("/", PeopleController.FindUserHandler)
 router.post("/Get", PeopleController.FetchAllUsersHandler)
 router.post("/AddFollow", AddFollowController.AddFollowersHandler)
-
+router.post("/BlockUser", PeopleController.BlockUserHandler)
 module.exports = router

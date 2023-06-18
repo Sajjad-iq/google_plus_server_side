@@ -6,7 +6,7 @@ exports.SignInHandler = async (req, res) => {
 
     try {
 
-        const user = await Account.findOne({ Email: req.body.Email }).select(["_id", "UserName", "FamilyName", "Email", "Password", "ProfilePicture", "CoverPicture", "Description", "Followers", "Following", " IsAdmin"]).lean();
+        const user = await Account.findOne({ Email: req.body.Email }).lean();
 
         if (user) {
             const PasswordCompare = await bcrypt.compare(req.body.Password, user.Password)

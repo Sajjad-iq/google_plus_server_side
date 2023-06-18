@@ -33,7 +33,7 @@ exports.AddPostHandler = async (req, res) => {
                 // convert from base64 
                 let base64Image = req.body.PostImage.split(';base64,').pop();
                 let imgBuffer = Buffer.from(base64Image, 'base64');
-                3
+
                 // resize 
                 sharp(imgBuffer)
                     .webp({ quality: 75, compressionLevel: 7 })
@@ -72,7 +72,6 @@ exports.EditPostHandler = async (req, res) => {
             // convert from base64 
             let base64Image = body.PostImage.split(';base64,').pop();
             let imgBuffer = Buffer.from(base64Image, 'base64');
-            3
             // resize 
             sharp(imgBuffer)
                 .webp({ quality: 75, compressionLevel: 7 })
@@ -118,12 +117,11 @@ exports.EditPostHandler = async (req, res) => {
 exports.FetchPostsHandler = async (req, res) => {
 
     try {
+        if (req.session.UserId) {
 
-        const PayloadCount = req.body.PayloadCount
+            const PayloadCount = req.body.PayloadCount || 0
+            const Posts = await PostSchema.find(req.body.PostsOwner).lean(true).sort({ createdAt: -1 }).limit(PayloadCount + 5)
 
-        const Posts = await PostSchema.find(req.body.PostsOwner).lean(true).sort({ createdAt: -1 }).limit(PayloadCount + 5)
-
-        if (Posts && req.session.UserId) {
 
             if (req.body.forCollectionsPreviewWindow) {
                 res.status(200).json({
@@ -133,10 +131,12 @@ exports.FetchPostsHandler = async (req, res) => {
 
             } else {
                 const NewPosts = Posts.map((e) => {
-                    if (e.PostFrom === "Collections") {
-                        const FollowingCollectionsArr = req.body.FollowingCollections || [];
-                        if (FollowingCollectionsArr.includes(e.CollectionId) | e.CollectionOwnerId === req.session.UserId) return e
-                    } else return e
+                    const FollowingCollectionsArr = req.body.FollowingCollections || [];
+                    if (!req.body.BlackList.includes(e.PostOwnerId)) {
+                        if (e.PostFrom === "Collections") {
+                            if (FollowingCollectionsArr.includes(e.CollectionId) | e.CollectionOwnerId === req.session.UserId) return e
+                        } else return e
+                    }
                 })
                 res.status(200).json({
                     ResponsePosts: NewPosts.splice(PayloadCount, PayloadCount + 5),
@@ -146,7 +146,7 @@ exports.FetchPostsHandler = async (req, res) => {
             }
 
         }
-        else { res.status(404).json("Posts not found") }
+        else { res.status(404).json("invalid access") }
 
     } catch (e) {
         console.log(e)

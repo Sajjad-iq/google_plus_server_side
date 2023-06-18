@@ -46,6 +46,23 @@ exports.FetchAllUsersHandler = async (req, res) => {
 };
 
 
+exports.BlockUserHandler = async (req, res) => {
+    try {
+        if (req.session.UserId) {
+            await Account.updateOne({ _id: req.session.UserId },
+                req.body.operation === "add" ?
+                    { $set: { BlockedAccounts: req.body.BlockedUserId } }
+                    :
+                    { $pull: { BlockedAccounts: req.body.BlockedUserId } }
+            )
+            res.status(200).json("done!")
+
+        } else { res.status(404).json("invalid access") }
+    } catch (e) {
+        console.log(e)
+        return res.status(500).json("server error")
+    }
+};
 
 
 
