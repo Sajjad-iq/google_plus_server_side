@@ -51,6 +51,10 @@ const AccountSchema = new mongoose.Schema({
     BlockedAccounts: {
         type: Array,
         default: []
+    },
+    BlockedFromAccounts: {
+        type: Array,
+        default: []
     }
 },
     { timestamps: true }

@@ -49,12 +49,22 @@ exports.FetchAllUsersHandler = async (req, res) => {
 exports.BlockUserHandler = async (req, res) => {
     try {
         if (req.session.UserId) {
-            await Account.updateOne({ _id: req.session.UserId },
-                req.body.operation === "add" ?
-                    { $set: { BlockedAccounts: req.body.BlockedUserId } }
-                    :
-                    { $pull: { BlockedAccounts: req.body.BlockedUserId } }
-            )
+
+            await Promise.all([
+                await Account.updateOne({ _id: req.session.UserId },
+                    req.body.operation === "add" ?
+                        { $addToSet: { BlockedAccounts: req.body.BlockedUserId } }
+                        :
+                        { $pull: { BlockedAccounts: req.body.BlockedUserId } }
+                ),
+                await Account.updateOne({ _id: req.body.BlockedUserId },
+                    req.body.operation === "add" ?
+                        { $addToSet: { BlockedFromAccounts: req.session.UserId } }
+                        :
+                        { $pull: { BlockedFromAccounts: req.session.UserId } }
+                )
+            ])
+
             res.status(200).json("done!")
 
         } else { res.status(404).json("invalid access") }
