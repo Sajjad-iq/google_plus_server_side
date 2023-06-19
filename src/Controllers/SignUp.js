@@ -13,9 +13,11 @@ exports.AddNewAccount = async (req, res) => {
         Password: Joi.string().min(4).max(25).required()
     })
 
+    let email = await req.body.Email.split(" ").join("")
+    let password = await req.body.Password.split(" ").join("")
 
     try {
-        const allAccounts = await Account.findOne({ Email: req.body.Email }).select(["UserName", "FamilyName", "Email", "Password", "ProfilePicture", "CoverPicture", "Description", "Followers", "Following", " IsAdmin"]).lean();
+        const allAccounts = await Account.findOne({ Email: email }).select(["UserName", "FamilyName", "Email", "Password", "ProfilePicture", "CoverPicture", "Description", "Followers", "Following", " IsAdmin"]).lean();
         const { error, value } = signUpSchema.validate(body)
 
         if (!allAccounts) {
@@ -23,13 +25,11 @@ exports.AddNewAccount = async (req, res) => {
                 return res.status(404).json(error.message)
             } else {
 
-
-
                 const account = new Account({
                     UserName: body.UserName,
                     FamilyName: body.FamilyName,
-                    Email: body.Email,
-                    Password: await bcrypt.hash(body.Password, 10)
+                    Email: email,
+                    Password: await bcrypt.hash(password, 10)
                 })
 
                 await account.save()

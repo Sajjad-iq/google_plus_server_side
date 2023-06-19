@@ -5,7 +5,7 @@ const NotificationsSchema = require("../../Schema/Notifications")
 exports.FindUserHandler = async (req, res) => {
 
     try {
-        const user = await Account.findById(req.body.id).select(["UserName", "FamilyName", "Email", "Password", "ProfilePicture", "CoverPicture", "Description", "Followers", "Following", " IsAdmin", "FollowingCollections"]).lean();
+        const user = await Account.findById(req.body.id).lean();
 
         if (req.body.setNotificationAsRead) {
             await NotificationsSchema.updateOne({

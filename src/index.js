@@ -76,7 +76,7 @@ app.use(session({
     store: MongoStore.create({
         mongoUrl: process.env.DataBase_URL,
         autoRemove: 'interval',
-        autoRemoveInterval: 60 // In minutes. Default
+        autoRemoveInterval: 240 // In minutes. Default
     })
 }))
 
@@ -88,7 +88,6 @@ const PostsRoutes = require('./Routes/Posts')
 const SignUpRoutes = require('./Routes/SignUp')
 const SignInRoutes = require('./Routes/SignIn')
 const ProfileRoutes = require('./Routes/UserProfile')
-const SearchRoutes = require('./Routes/search')
 const PeopleRoutes = require('./Routes/People')
 const NotificationsRoutes = require('./Routes/Notifications');
 const CollectionsRoutes = require('./Routes/Collections');
@@ -96,7 +95,6 @@ app.use("/api/SignUp", SignUpRoutes)
 app.use("/api/SignIn", SignInRoutes)
 app.use("/api/Profile", ProfileRoutes)
 app.use("/api/Posts", PostsRoutes)
-app.use("/api/Search", SearchRoutes)
 app.use("/api/People", PeopleRoutes)
 app.use("/api/Notifications", NotificationsRoutes)
 app.use("/api/Collections", CollectionsRoutes)
