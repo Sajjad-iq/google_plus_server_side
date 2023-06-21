@@ -1,6 +1,7 @@
 const Account = require('../Schema/Account')
 const Post = require('../Schema/Post')
 const sharp = require('sharp');
+const bcrypt = require("bcrypt")
 
 
 exports.EditUserAccount = async (req, res) => {
@@ -110,4 +111,42 @@ exports.FirstLoad = async (req, res) => {
         return res.status(500).json("server error");
     }
 
+}
+
+
+exports.ChangePassword = async (req, res) => {
+
+    const body = req.body
+    if (req.session.UserId) {
+
+        try {
+
+            const password = await body.Password.split(" ").join("")
+
+            if (body.operation == "verify") {
+                const PasswordCompare = await bcrypt.compare(password, body.CurrentPassword)
+
+                if (PasswordCompare) {
+                    res.status(200).json(true)
+                } else {
+                    res.status(200).json(false)
+                }
+
+            } else if (body.operation == "ChangePassword") {
+                const user = await Account.updateOne({ _id: req.session.UserId }, {
+                    $set: { Password: await bcrypt.hash(password, 10) }
+                }).lean();
+                res.status(200).json(user);
+
+            }
+
+        } catch (e) {
+            console.log(e)
+            return res.status(500).json("server error");
+
+        }
+
+    } else {
+        return res.status(410).json("You can update only your account!");
+    }
 }
