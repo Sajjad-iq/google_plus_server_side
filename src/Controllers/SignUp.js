@@ -10,7 +10,7 @@ exports.AddNewAccount = async (req, res) => {
         UserName: Joi.string().min(1).max(10).required(),
         FamilyName: Joi.string().min(1).max(10).required(),
         Email: Joi.string().email().required(),
-        Password: Joi.string().min(4).max(25).required()
+        Password: Joi.string().min(5).max(25).required()
     })
 
     let email = await req.body.Email.split(" ").join("")

@@ -2,15 +2,31 @@ const Account = require('../Schema/Account')
 const Post = require('../Schema/Post')
 const sharp = require('sharp');
 const bcrypt = require("bcrypt")
+const Joi = require("joi")
 
 
 exports.EditUserAccount = async (req, res) => {
 
     const body = req.body
+    const userData = {
+        UserName: body.User.UserName,
+        FamilyName: body.User.FamilyName,
+        Email: body.User.Email,
+    }
 
-    if (req.session.UserId) {
+    const signUpSchema = Joi.object({
+        UserName: Joi.string().min(1).max(10).required(),
+        FamilyName: Joi.string().min(1).max(10).required(),
+        Email: Joi.string().email().required(),
+    })
+
+    const { error, value } = signUpSchema.validate(userData)
+
+    if (req.session.UserId && !error) {
 
         try {
+
+
 
             if (body.User.ProfilePicture !== "") {
                 // convert user profile picture from base64 
@@ -91,7 +107,10 @@ exports.EditUserAccount = async (req, res) => {
         }
 
     } else {
-        return res.status(410).json("You can update only your account!");
+        return res.status(410).json({
+            message: "invalid access",
+            joiMessage: error.message || "error"
+        });
     }
 
 }
@@ -133,17 +152,26 @@ exports.ChangePassword = async (req, res) => {
                 }
 
             } else if (body.operation == "ChangePassword") {
-                const user = await Account.updateOne({ _id: req.session.UserId }, {
-                    $set: { Password: await bcrypt.hash(password, 10) }
-                }).lean();
-                res.status(200).json(user);
+
+                const userData = { Password: password }
+                const signUpSchema = Joi.object({
+                    Password: Joi.string().min(5).max(20).required(),
+                })
+                const { error, value } = signUpSchema.validate(userData)
+                if (error) {
+                    res.status(404).json(error.message);
+                } else {
+                    await Account.updateOne({ _id: req.session.UserId }, {
+                        $set: { Password: await bcrypt.hash(password, 10) }
+                    }).lean();
+                    res.status(200).json("done");
+                }
 
             }
 
         } catch (e) {
             console.log(e)
             return res.status(500).json("server error");
-
         }
 
     } else {
