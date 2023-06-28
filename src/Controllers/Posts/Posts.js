@@ -119,8 +119,8 @@ exports.FetchPostsHandler = async (req, res) => {
     try {
         if (req.session.UserId) {
 
-            const PayloadCount = req.body.PayloadCount || 0
-            const Posts = await PostSchema.find(req.body.PostsOwner).lean(true).sort({ createdAt: -1 }).limit(PayloadCount + 5)
+            const PayloadCount = req.body.PayloadCount
+            const Posts = await PostSchema.find(req.body.PostsOwner).sort({ createdAt: -1 }).limit(PayloadCount + 5).lean()
 
 
             if (req.body.forCollectionsPreviewWindow) {
@@ -131,13 +131,14 @@ exports.FetchPostsHandler = async (req, res) => {
 
             } else {
                 const NewPosts = Posts.map((e) => {
-                    const FollowingCollectionsArr = req.body.FollowingCollections || [];
+                    const FollowingCollectionsArr = req.body.FollowingCollections;
                     const IsInBlackListForMe = req.body.BlackList.includes(e.PostOwnerId)
                     const IsInBlackListForOthers = req.body.BlockedFrom.includes(e.PostOwnerId)
 
-                    if (!IsInBlackListForMe && !IsInBlackListForOthers) {
+                    if (IsInBlackListForMe === false && IsInBlackListForOthers === false) {
                         if (e.PostFrom === "Collections") {
-                            if (FollowingCollectionsArr.includes(e.CollectionId) | e.CollectionOwnerId === req.session.UserId) return e
+                            let isIncludes = FollowingCollectionsArr.includes(e.CollectionId)
+                            if (isIncludes | e.CollectionOwnerId === req.session.UserId) return e
                         } else return e
                     }
                 })
@@ -166,13 +167,13 @@ exports.FetchCommentsHandler = async (req, res) => {
             const PayloadCount = req.body.PayloadCount
             const Comments = await CommentsSchema.find({ CommentFromPost: req.body.PostId }).lean().limit(PayloadCount + 10)
 
-            const FilteredComments = Comments.map((e) => {
+            const FilteredComments = Comments.filter((e) => {
                 const IsInBlackListForMe = req.body.BlackList.includes(e.CommentOwnerId)
                 const IsInBlackListForOthers = req.body.BlockedFrom.includes(e.CommentOwnerId)
-                if (!IsInBlackListForMe && !IsInBlackListForOthers) return e
+                if (IsInBlackListForMe === false && IsInBlackListForOthers === false) return e
             })
             res.status(200).json({
-                ResponseComments: FilteredComments.length > 1 ? FilteredComments.splice(PayloadCount, PayloadCount + 10) : [],
+                ResponseComments: FilteredComments.splice(PayloadCount, PayloadCount + 5),
                 StopFetching: FilteredComments.length < PayloadCount ? true : false
             })
         } else return res.status(404).json("invalid access")
