@@ -27,17 +27,28 @@ exports.FetchAllUsersHandler = async (req, res) => {
     try {
         const PayloadCount = req.body.PayloadCount
 
-        const Users = await Account.find().limit(PayloadCount + 10).sort({ createdAt: -1 }).select(
-            ["_id", "UserName", "FamilyName", "ProfilePicture", "Description", "Followers"]
-        ).lean()
+        let Users = []
+        /*  */
 
-        if (Users && req.session.UserId) {
+        if (req.body.SelectedButton === 0) {
+            Users = await Account.find().limit(10).sort({ createdAt: -1 }).select(
+                ["_id", "UserName", "FamilyName", "ProfilePicture", "Description", "Followers"]
+            ).lean()
+        }
+        else if (req.body.SelectedButton === 1) {
+            Users = await Account.find({ '_id': { $in: req.body.UserFollowing } }).limit(10).sort({ createdAt: -1 }).select(
+                ["_id", "UserName", "FamilyName", "ProfilePicture", "Description", "Followers"]
+            ).lean()
+        }
+
+
+        if (req.session.UserId) {
             res.status(200).json({
                 ResponseUsers: Users.splice(PayloadCount, PayloadCount + 10),
                 StopFetching: Users.length < PayloadCount ? true : false
             })
         }
-        else { res.status(404).json("Posts not found") }
+        else { res.status(404).json("invalid access") }
 
     } catch (e) {
         console.log(e)
