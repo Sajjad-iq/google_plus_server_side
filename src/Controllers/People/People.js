@@ -36,10 +36,17 @@ exports.FetchAllUsersHandler = async (req, res) => {
             ).lean()
         }
         else if (req.body.SelectedButton === 1) {
-            Users = await Account.find({ '_id': { $in: req.body.UserFollowing } }).limit(6).sort({ createdAt: -1 }).select(
+            Users = await Account.find({ '_id': { $in: req.body.UserFollowing } }).limit(req.body.FindMoreFollowing ? PayloadCount + 10 : 6).sort({ createdAt: -1 }).select(
                 ["_id", "UserName", "FamilyName", "ProfilePicture", "Description", "Followers"]
             ).lean()
         }
+
+        else if (req.body.SelectedButton === 2) {
+            Users = await Account.find({ '_id': { $in: req.body.UserFollowers } }).limit(6).sort({ createdAt: -1 }).select(
+                ["_id", "UserName", "FamilyName", "ProfilePicture", "Description", "Followers"]
+            ).lean()
+        }
+
 
 
         if (req.session.UserId && Users.length !== 0) {
