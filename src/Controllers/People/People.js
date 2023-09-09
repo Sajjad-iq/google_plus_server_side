@@ -31,18 +31,18 @@ exports.FetchAllUsersHandler = async (req, res) => {
         /*  */
 
         if (req.body.SelectedButton === 0) {
-            Users = await Account.find().limit(10).sort({ createdAt: -1 }).select(
+            Users = await Account.find().limit(PayloadCount + 10).sort({ createdAt: -1 }).select(
                 ["_id", "UserName", "FamilyName", "ProfilePicture", "Description", "Followers"]
             ).lean()
         }
         else if (req.body.SelectedButton === 1) {
-            Users = await Account.find({ '_id': { $in: req.body.UserFollowing } }).limit(10).sort({ createdAt: -1 }).select(
+            Users = await Account.find({ '_id': { $in: req.body.UserFollowing } }).limit(6).sort({ createdAt: -1 }).select(
                 ["_id", "UserName", "FamilyName", "ProfilePicture", "Description", "Followers"]
             ).lean()
         }
 
 
-        if (req.session.UserId) {
+        if (req.session.UserId && Users.length !== 0) {
             res.status(200).json({
                 ResponseUsers: Users.splice(PayloadCount, PayloadCount + 10),
                 StopFetching: Users.length < PayloadCount ? true : false
