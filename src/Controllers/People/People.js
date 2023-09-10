@@ -49,7 +49,7 @@ exports.FetchAllUsersHandler = async (req, res) => {
 
 
 
-        if (req.session.UserId && Users.length !== 0) {
+        if (req.session.UserId) {
             res.status(200).json({
                 ResponseUsers: Users.splice(PayloadCount, PayloadCount + 10),
                 StopFetching: Users.length < PayloadCount ? true : false
